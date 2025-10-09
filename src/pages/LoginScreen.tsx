@@ -1,33 +1,27 @@
 // src/pages/LoginScreen.tsx
 
-import React from 'react';
+import React, { useEffect } from 'react';
 import { useAuth } from '../context/AuthContext';
+import { useNavigate } from 'react-router';
 
 const LoginScreen: React.FC = () => {
-  const { isAuthenticated, user, loginWithHostedUI, logout } = useAuth();
+  const { isAuthenticated, loginWithHostedUI } = useAuth();
+  const navigate = useNavigate();
 
-  // If authenticated, show the app content
-  if (isAuthenticated) {
-    return (
-      <div className="app-screen">
-        <h1>Welcome back, {user?.name}!</h1>
-        <p>Your session is active. You are viewing the protected content.</p>
-        <p>Email: {user?.email}</p>
-        <button onClick={logout} className="logout-button">
-          Logout
-        </button>
-      </div>
-    );
-  }
+  // If already authenticated, redirect to the dashboard
+  useEffect(() => {
+    if (isAuthenticated) {
+      // Could redirect to a saved 'from' location from the state, but '/' is simple
+      navigate('/', { replace: true }); 
+    }
+  }, [isAuthenticated, navigate]);
 
-  // If not authenticated, show Google sign-in button
   return (
     <div className="login-screen">
-      <h1>OnPRTY</h1>
-      <p>Please sign in to continue</p>
+      <h1>On Pretty - Secure App</h1>
+      <p>Please sign in to access your dashboard.</p>
       <button
         onClick={() => loginWithHostedUI('Google')}
-        className="google-login-button"
       >
         Sign in with Google
       </button>

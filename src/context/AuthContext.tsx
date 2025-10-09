@@ -14,9 +14,11 @@ interface AuthTokens {
   expiresAt: number;
 }
 
-interface User {
-  email: string;
-  name: string;
+export interface User {
+  email?: string;
+  given_name?: string;
+  family_name?: string;
+  [key: string]: string | number | boolean | undefined;
 }
 
 interface AuthContextType {
@@ -124,7 +126,11 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     window.location.assign(logoutUrl);
   }, []);
 
-  const isAuthenticated = !!tokens && tokens.expiresAt > Date.now();
+  const getIsAuthenticated = (t: AuthTokens | null): boolean => {
+    return !!t && t.expiresAt > Date.now();
+  };
+
+  const isAuthenticated = getIsAuthenticated(tokens);
 
   return (
     <AuthContext.Provider value={{ user, isAuthenticated, loginWithHostedUI, logout, processAuthRedirect }}>
