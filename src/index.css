@@ -273,6 +273,26 @@ body {
   font-style: italic;
 }
 
+.code-preview {
+  flex: 1;
+  overflow: auto;
+  background-color: #f8f9fa;
+  padding: 1rem;
+}
+
+.code-content {
+  font-family: 'IBM Plex Mono', monospace;
+  font-size: 0.9rem;
+  line-height: 1.5;
+  background-color: white;
+  border: 1px solid #e0e0e0;
+  border-radius: 4px;
+  padding: 1rem;
+  margin: 0;
+  white-space: pre-wrap;
+  word-wrap: break-word;
+}
+
 .divider {
   margin: 0;
   border: none;

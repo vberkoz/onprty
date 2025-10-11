@@ -81,6 +81,18 @@ const ProjectPage: React.FC = () => {
       return <div className="no-preview"><p>Select a site to view preview</p></div>;
     }
 
+    // Check if it's a code file (CSS or JS)
+    if (previewFile.endsWith('.css') || previewFile.endsWith('.js')) {
+      const content = selectedSite.files[previewFile];
+      return (
+        <div className="code-preview">
+          <pre className="code-content">
+            <code>{content}</code>
+          </pre>
+        </div>
+      );
+    }
+
     let content = selectedSite.files[previewFile];
     
     // Inject navigation handler script
