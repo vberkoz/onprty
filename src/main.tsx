@@ -1,4 +1,4 @@
-// src/main.tsx
+// src/main.tsx (Updated Routing)
 
 import React from 'react';
 import ReactDOM from 'react-dom/client';
@@ -6,11 +6,12 @@ import { BrowserRouter, Routes, Route } from 'react-router';
 import { AuthProvider } from './context/AuthContext';
 import './index.css'; 
 
-import LoginScreen from './pages/LoginScreen';
+// Components & Pages
+import LoginPage from './pages/LoginPage';
 import AuthCallback from './pages/AuthCallback';
-import Dashboard from './pages/Dashboard'; // New
-import ProfileScreen from './pages/ProfileScreen'; // New
-import ProtectedRoute from './components/ProtectedRoute'; // New
+import AppLayout from './components/AppLayout';
+import ProtectedRoute from './components/ProtectedRoute'; 
+import ProjectPage from './pages/ProjectPage';
 
 ReactDOM.createRoot(document.getElementById('root')!).render(
   <React.StrictMode>
@@ -18,29 +19,26 @@ ReactDOM.createRoot(document.getElementById('root')!).render(
       <AuthProvider>
         <Routes>
           {/* Public Routes */}
-          <Route path="/login" element={<LoginScreen />} />
+          <Route path="/login" element={<LoginPage />} />
           <Route path="/auth-callback" element={<AuthCallback />} />
 
-          {/* Protected Routes */}
+          {/* Protected Routes (Wrapped in AppLayout & ProtectedRoute) */}
           <Route 
-            path="/" 
+            path="/*" // Match all paths under the root
             element={
               <ProtectedRoute>
-                <Dashboard />
+                <AppLayout>
+                  <Routes>
+                    {/* Nested Routes within the layout */}
+                    <Route path="/" element={<ProjectPage />} />
+                    
+                    {/* Optional: Add a 404 handler inside the layout */}
+                    {/* <Route path="*" element={<div>404 Not Found</div>} /> */}
+                  </Routes>
+                </AppLayout>
               </ProtectedRoute>
             } 
           />
-          <Route 
-            path="/profile" 
-            element={
-              <ProtectedRoute>
-                <ProfileScreen />
-              </ProtectedRoute>
-            } 
-          />
-
-          {/* Catch-all: Redirect to home (which is protected) or login if not found */}
-          <Route path="*" element={<LoginScreen />} />
         </Routes>
       </AuthProvider>
     </BrowserRouter>

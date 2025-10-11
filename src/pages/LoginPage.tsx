@@ -1,10 +1,10 @@
-// src/pages/LoginScreen.tsx
+// src/pages/LoginPage.tsx
 
 import React, { useEffect } from 'react';
 import { useAuth } from '../context/AuthContext';
 import { useNavigate } from 'react-router';
 
-const LoginScreen: React.FC = () => {
+const LoginPage: React.FC = () => {
   const { isAuthenticated, loginWithHostedUI } = useAuth();
   const navigate = useNavigate();
 
@@ -29,4 +29,4 @@ const LoginScreen: React.FC = () => {
   );
 };
 
-export default LoginScreen;
+export default LoginPage;
