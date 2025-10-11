@@ -176,11 +176,113 @@ export class OnprtyCdkStack extends cdk.Stack {
     // Ensure the client depends on the Google provider
     userPoolClient.node.addDependency(googleProvider);
 
+    // Site Generator API Lambda
+    const apiLambda = new cdk.aws_lambda.Function(this, 'OnprtyApiLambda', {
+      runtime: cdk.aws_lambda.Runtime.NODEJS_22_X,
+      handler: 'lambda.handler',
+      code: cdk.aws_lambda.Code.fromAsset(path.join(__dirname, '../api')),
+      timeout: cdk.Duration.seconds(30),
+      environment: {
+        NODE_ENV: 'production'
+      },
+    });
+
+    // Grant Bedrock permissions to Lambda
+    apiLambda.addToRolePolicy(
+      new cdk.aws_iam.PolicyStatement({
+        effect: cdk.aws_iam.Effect.ALLOW,
+        actions: [
+          'bedrock:InvokeModel',
+          'bedrock:InvokeModelWithResponseStream',
+        ],
+        resources: ['*'],
+      })
+    );
+
+    // API Gateway
+    const api = new cdk.aws_apigatewayv2.HttpApi(this, 'OnprtyApi', {
+      apiName: 'onprty-api',
+      createDefaultStage: false,
+      corsPreflight: {
+        allowHeaders: ['*'],
+        allowMethods: [cdk.aws_apigatewayv2.CorsHttpMethod.ANY],
+        allowOrigins: ['*'],
+      },
+    });
+
+    // Lambda integration
+    const lambdaIntegration = new cdk.aws_apigatewayv2_integrations.HttpLambdaIntegration(
+      'OnprtyLambdaIntegration',
+      apiLambda
+    );
+
+    // API routes
+    api.addRoutes({
+      path: '/generate',
+      methods: [cdk.aws_apigatewayv2.HttpMethod.POST],
+      integration: lambdaIntegration,
+    });
+
+    // Rate limiting
+    new cdk.aws_apigatewayv2.CfnStage(this, 'OnprtyApiRateLimitedStage', {
+      apiId: api.apiId,
+      stageName: '$default',
+      autoDeploy: true,
+      defaultRouteSettings: {
+        throttlingBurstLimit: 5,   // max 5 concurrent requests
+        throttlingRateLimit: 10,   // 10 requests per second
+      },
+    });
+
+
+
+    // S3 Bucket for generated sites
+    const sitesBucket = new cdk.aws_s3.Bucket(this, 'OnprtySitesBucket', {
+      bucketName: `onprty-sites-${this.account}-${this.region}`,
+      removalPolicy: cdk.RemovalPolicy.DESTROY,
+      blockPublicAccess: cdk.aws_s3.BlockPublicAccess.BLOCK_ALL,
+      autoDeleteObjects: true,
+    });
+
+    // CloudFront OAI for sites
+    const sitesOai = new cdk.aws_cloudfront.OriginAccessIdentity(this, 'OnprtySitesOAI');
+    sitesBucket.grantRead(sitesOai);
+
+    // CloudFront distribution for generated sites
+    const sitesDistribution = new cdk.aws_cloudfront.Distribution(this, 'OnprtySitesDistribution', {
+      defaultBehavior: {
+        origin: cdk.aws_cloudfront_origins.S3BucketOrigin.withOriginAccessIdentity(sitesBucket, {
+          originAccessIdentity: sitesOai,
+        }),
+        viewerProtocolPolicy: cdk.aws_cloudfront.ViewerProtocolPolicy.REDIRECT_TO_HTTPS,
+      },
+      errorResponses: [
+        {
+          httpStatus: 404,
+          responseHttpStatus: 200,
+          responsePagePath: '/index.html',
+          ttl: cdk.Duration.minutes(5)
+        }
+      ],
+    });
+
     new cdk.CfnOutput(this, 'OnprtyAppDomain', { value: `https://${domain}` });
     new cdk.CfnOutput(this, 'OnprtyUserPoolId', { value: userPool.userPoolId });
     new cdk.CfnOutput(this, 'OnprtyUserPoolClientId', { value: userPoolClient.userPoolClientId });
     new cdk.CfnOutput(this, 'OnprtyCognitoDomain', {
       value: `https://auth.${domain}`,
+    });
+    new cdk.CfnOutput(this, 'OnprtyApiUrl', {
+      value: api.apiEndpoint,
+      description: 'API Gateway URL for site generation',
+    });
+    new cdk.CfnOutput(this, 'OnprtySitesBucketName', {
+      value: sitesBucket.bucketName,
+      description: 'S3 Bucket for hosting generated sites',
+    });
+    new cdk.CfnOutput(this, 'OnprtySitesDistributionDomain', {
+      value: sitesDistribution.distributionDomainName,
+      description: 'CloudFront distribution domain for generated sites',
     });
   }
 }
