@@ -60,6 +60,13 @@ export async function generateSite(prompt: string): Promise<{ siteData: SiteData
   const siteData: SiteData = JSON.parse(data.output);
   const siteFiles = generateHTML(siteData);
   
+  // Add the original JSON schema to files with user prompt
+  const schemaWithPrompt = {
+    userPrompt: prompt,
+    generatedData: siteData
+  };
+  siteFiles['schema.json'] = JSON.stringify(schemaWithPrompt, null, 2);
+  
   return { siteData, siteFiles };
 }
 
@@ -72,7 +79,7 @@ function generateHTML(siteData: SiteData): SiteFiles {
     .map(page => `<a href="${page.fileName}">${page.navLabel}</a>`)
     .join('');
   
-  const nav = `<nav><a href="index.html">${siteData.siteMetadata.navTitle}</a>${navItems}</nav>`;
+  const nav = `<nav><a href="index.html">${siteData.siteMetadata.navTitle}</a><div class="nav-links">${navItems}</div></nav>`;
   
   // Generate pages
   for (const page of siteData.pages) {
@@ -101,75 +108,66 @@ function generateHTML(siteData: SiteData): SiteFiles {
   return siteFiles;
 }
 
+const DEFAULT_ICONS = ['⚡', '🎨', '📱', '🚀', '💡', '🔧', '📊', '🎯', '🌟', '💎'];
+
+const mapCtaData = (data: Record<string, unknown>) => {
+  let ctaLink = data.ctaLink || '#';
+  // Convert absolute paths to relative for iframe navigation
+  if (typeof ctaLink === 'string' && ctaLink.startsWith('/')) {
+    ctaLink = ctaLink.substring(1);
+  }
+  return {
+    heading: data.heading,
+    subheading: data.subheading || data.description,
+    ctaText: data.ctaText || data.buttonText || 'Learn More',
+    ctaLink
+  };
+};
+
 function generateSection(section: SiteSection): string {
-  let template = '';
+  const { type, data } = section;
   
-  switch (section.type) {
-    case 'hero': {
-      // Map API fields to template fields
-      const mappedData = {
-        heading: section.data.heading,
-        subheading: section.data.subheading,
-        ctaText: section.data.ctaText || section.data.buttonText || 'Learn More',
-        ctaLink: section.data.ctaLink || '#'
-      };
-      template = replaceTemplateVars(heroTemplate, mappedData);
-      return template;
-    }
+  switch (type) {
+    case 'hero':
+      return replaceTemplateVars(heroTemplate, mapCtaData(data));
+    
     case 'features': {
-      const items = (section.data.items || section.data.features) as Record<string, unknown>[] || [];
-      const features = items.map((item) => {
-        // Map API fields to template fields
-        const mappedItem = {
-          icon: item.icon || '⭐',
+      const items = (data.items || data.features) as Record<string, unknown>[] || [];
+      const featuresHtml = items.map((item, index) => 
+        replaceTemplateVars(featuresItemTemplate, {
+          icon: item.icon || DEFAULT_ICONS[index % DEFAULT_ICONS.length],
           heading: item.heading || item.title,
           description: item.description
-        };
-        return replaceTemplateVars(featuresItemTemplate, mappedItem);
-      }).join('');
-      template = featuresTemplate.replace('{{items}}', features);
-      break;
+        })
+      ).join('');
+      return replaceTemplateVars(featuresTemplate, { ...data, items: featuresHtml });
     }
-    case 'text_block': {
-      // Map API fields to template fields
-      const mappedData = {
-        title: section.data.title || section.data.heading,
-        content: section.data.content || section.data.text
-      };
-      template = replaceTemplateVars(textBlockTemplate, mappedData);
-      return template;
-    }
-    case 'call_to_action': {
-      // Map API fields to template fields
-      const mappedData = {
-        heading: section.data.heading,
-        subheading: section.data.subheading || section.data.description,
-        ctaText: section.data.ctaText || section.data.buttonText || 'Learn More',
-        ctaLink: section.data.ctaLink || '#'
-      };
-      template = replaceTemplateVars(callToActionTemplate, mappedData);
-      return template;
-    }
+    
+    case 'text_block':
+      return replaceTemplateVars(textBlockTemplate, {
+        title: data.title || data.heading,
+        content: data.content || data.text
+      });
+    
+    case 'call_to_action':
+      return replaceTemplateVars(callToActionTemplate, mapCtaData(data));
+    
     case 'team_members': {
-      const members = section.data.members as Record<string, unknown>[] || [];
-      const membersList = members.map((member) => {
-        // Map API fields to template fields
-        const mappedMember = {
+      const members = data.members as Record<string, unknown>[] || [];
+      const membersHtml = members.map(member => 
+        replaceTemplateVars(teamMemberItemTemplate, {
           image: member.image || 'https://via.placeholder.com/150',
           name: member.name,
           role: member.role,
           bio: member.bio || member.description
-        };
-        return replaceTemplateVars(teamMemberItemTemplate, mappedMember);
-      }).join('');
-      template = teamMembersTemplate.replace('{{members}}', membersList);
-      break;
+        })
+      ).join('');
+      return teamMembersTemplate.replace('{{members}}', membersHtml);
     }
+    
     default:
       return '';
   }
-  
-  return replaceTemplateVars(template, section.data);
 }
 
 function replaceTemplateVars(template: string, data: Record<string, unknown>): string {

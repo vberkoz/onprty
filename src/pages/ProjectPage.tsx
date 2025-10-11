@@ -1,9 +1,85 @@
 // src/pages/ProjectPage.tsx
 
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useRef } from "react";
 import { useAuth } from '../context/AuthContext';
 import { generateSite } from '../services/siteGenerator';
-import { initDB, saveSite, getSites, deleteSite, downloadSiteAsZip, type StoredSite } from '../services/siteStorage';
+import { initDB, saveSite, getSites, deleteSite, downloadSiteAsZip, type StoredSite } from '../services/siteStorageS3';
+
+const ConfirmDialog: React.FC<{
+  isOpen: boolean;
+  title: string;
+  message: string;
+  onConfirm: () => void;
+  onCancel: () => void;
+}> = ({ isOpen, title, message, onConfirm, onCancel }) => {
+  if (!isOpen) return null;
+
+  return (
+    <div className="dialog-overlay">
+      <div className="dialog-content">
+        <h3>{title}</h3>
+        <p>{message}</p>
+        <div className="dialog-actions">
+          <button className="dialog-button secondary" onClick={onCancel}>
+            Cancel
+          </button>
+          <button className="dialog-button primary" onClick={onConfirm}>
+            Delete
+          </button>
+        </div>
+      </div>
+    </div>
+  );
+};
+
+const FileDropdown: React.FC<{
+  value: string;
+  options: string[];
+  onChange: (value: string) => void;
+}> = ({ value, options, onChange }) => {
+  const [isOpen, setIsOpen] = useState(false);
+  const dropdownRef = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    const handleClickOutside = (event: MouseEvent) => {
+      if (dropdownRef.current && !dropdownRef.current.contains(event.target as Node)) {
+        setIsOpen(false);
+      }
+    };
+    document.addEventListener('mousedown', handleClickOutside);
+    return () => document.removeEventListener('mousedown', handleClickOutside);
+  }, []);
+
+  return (
+    <div className="custom-dropdown" ref={dropdownRef}>
+      <button
+        className="dropdown-trigger"
+        onClick={() => setIsOpen(!isOpen)}
+        type="button"
+      >
+        <span>{value}</span>
+        <span className={`dropdown-arrow ${isOpen ? 'open' : ''}`}>▼</span>
+      </button>
+      {isOpen && (
+        <div className="dropdown-menu">
+          {options.map((option) => (
+            <button
+              key={option}
+              className={`dropdown-item ${option === value ? 'selected' : ''}`}
+              onClick={() => {
+                onChange(option);
+                setIsOpen(false);
+              }}
+              type="button"
+            >
+              {option}
+            </button>
+          ))}
+        </div>
+      )}
+    </div>
+  );
+};
 
 const ProjectPage: React.FC = () => {
   const [sites, setSites] = useState<StoredSite[]>([]);
@@ -11,6 +87,7 @@ const ProjectPage: React.FC = () => {
   const [prompt, setPrompt] = useState('');
   const [isGenerating, setIsGenerating] = useState(false);
   const [previewFile, setPreviewFile] = useState('index.html');
+  const [confirmDialog, setConfirmDialog] = useState<{ isOpen: boolean; siteId: string; siteName: string }>({ isOpen: false, siteId: '', siteName: '' });
   const { user, isAuthenticated, logout } = useAuth();
 
   const displayName = user?.given_name || user?.email || 'User';
@@ -21,9 +98,14 @@ const ProjectPage: React.FC = () => {
       await loadSites();
     };
     init();
-  }, []);
+  }, [isAuthenticated]);
 
   const loadSites = async () => {
+    if (!isAuthenticated) {
+      setSites([]);
+      return;
+    }
+    
     try {
       const loadedSites = await getSites();
       setSites(loadedSites);
@@ -32,6 +114,9 @@ const ProjectPage: React.FC = () => {
       }
     } catch (error) {
       console.error('Failed to load sites:', error);
+      if (error instanceof Error && error.message.includes('authorization')) {
+        logout();
+      }
     }
   };
 
@@ -62,18 +147,26 @@ const ProjectPage: React.FC = () => {
     }
   };
 
-  const handleDeleteSite = async (siteId: string) => {
-    if (!confirm('Are you sure you want to delete this site?')) return;
-    
+  const handleDeleteSite = (siteId: string, siteName: string) => {
+    setConfirmDialog({ isOpen: true, siteId, siteName });
+  };
+
+  const confirmDelete = async () => {
     try {
-      await deleteSite(siteId);
+      await deleteSite(confirmDialog.siteId);
       await loadSites();
-      if (selectedSite?.id === siteId) {
-        setSelectedSite(sites[0] || null);
+      if (selectedSite?.id === confirmDialog.siteId) {
+        setSelectedSite(null);
+        setPreviewFile('index.html');
       }
     } catch (error) {
       console.error('Failed to delete site:', error);
     }
+    setConfirmDialog({ isOpen: false, siteId: '', siteName: '' });
+  };
+
+  const cancelDelete = () => {
+    setConfirmDialog({ isOpen: false, siteId: '', siteName: '' });
   };
 
   const renderPreview = () => {
@@ -81,8 +174,8 @@ const ProjectPage: React.FC = () => {
       return <div className="no-preview"><p>Select a site to view preview</p></div>;
     }
 
-    // Check if it's a code file (CSS or JS)
-    if (previewFile.endsWith('.css') || previewFile.endsWith('.js')) {
+    // Check if it's a code file (CSS, JS, or JSON)
+    if (previewFile.endsWith('.css') || previewFile.endsWith('.js') || previewFile.endsWith('.json')) {
       const content = selectedSite.files[previewFile];
       return (
         <div className="code-preview">
@@ -182,7 +275,7 @@ const ProjectPage: React.FC = () => {
                 <div className="site-actions">
                   <button onClick={() => setSelectedSite(site)}>View</button>
                   <button onClick={() => downloadSiteAsZip(site)}>Download</button>
-                  <button onClick={() => handleDeleteSite(site.id)} className="delete-btn">Delete</button>
+                  <button onClick={() => handleDeleteSite(site.id, site.name)} className="delete-btn">Delete</button>
                 </div>
               </li>
             ))}
@@ -204,19 +297,23 @@ const ProjectPage: React.FC = () => {
         {selectedSite && (
           <div className="preview-header">
             <strong>{selectedSite.name}</strong>
-            <select 
-              value={previewFile} 
-              onChange={(e) => setPreviewFile(e.target.value)}
-              className="file-selector"
-            >
-              {Object.keys(selectedSite.files).map(fileName => (
-                <option key={fileName} value={fileName}>{fileName}</option>
-              ))}
-            </select>
+            <FileDropdown
+              value={previewFile}
+              options={Object.keys(selectedSite.files)}
+              onChange={setPreviewFile}
+            />
           </div>
         )}
         {renderPreview()}
       </section>
+      
+      <ConfirmDialog
+        isOpen={confirmDialog.isOpen}
+        title="Delete Site"
+        message={`Are you sure you want to delete "${confirmDialog.siteName}"? This action cannot be undone.`}
+        onConfirm={confirmDelete}
+        onCancel={cancelDelete}
+      />
     </div>
   );
 };

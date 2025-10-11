@@ -18,13 +18,16 @@ const LoginPage: React.FC = () => {
 
   return (
     <div className="login-screen">
-      <h1>On Pretty - Secure App</h1>
-      <p>Please sign in to access your dashboard.</p>
-      <button
-        onClick={() => loginWithHostedUI('Google')}
-      >
-        Sign in with Google
-      </button>
+      <div className="login-card">
+        <h1>OnPrty</h1>
+        <p>AI-powered website generator</p>
+        <button
+          className="login-button"
+          onClick={() => loginWithHostedUI('Google')}
+        >
+          Sign in with Google
+        </button>
+      </div>
     </div>
   );
 };

@@ -38,6 +38,19 @@ header, footer {
   padding: var(--padding-base) 0;
 }
 
+nav {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  width: 100%;
+  gap: var(--gap-base);
+}
+
+nav .nav-links {
+  display: flex;
+  gap: var(--gap-base);
+}
+
 main {
   flex-grow: 1;
   display: flex;
@@ -45,7 +58,11 @@ main {
   gap: 4rem;
 }
 
-nav a {
+nav a:first-child {
+  font-weight: 600;
+}
+
+nav a:not(:first-child) {
   margin-left: var(--gap-base);
 }
 

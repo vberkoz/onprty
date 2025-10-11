@@ -176,6 +176,14 @@ export class OnprtyCdkStack extends cdk.Stack {
     // Ensure the client depends on the Google provider
     userPoolClient.node.addDependency(googleProvider);
 
+    // S3 Bucket for generated sites
+    const sitesBucket = new cdk.aws_s3.Bucket(this, 'OnprtySitesBucket', {
+      bucketName: `onprty-sites-${this.account}-${this.region}`,
+      removalPolicy: cdk.RemovalPolicy.DESTROY,
+      blockPublicAccess: cdk.aws_s3.BlockPublicAccess.BLOCK_ALL,
+      autoDeleteObjects: true,
+    });
+
     // Site Generator API Lambda
     const apiLambda = new cdk.aws_lambda.Function(this, 'OnprtyApiLambda', {
       runtime: cdk.aws_lambda.Runtime.NODEJS_22_X,
@@ -183,7 +191,10 @@ export class OnprtyCdkStack extends cdk.Stack {
       code: cdk.aws_lambda.Code.fromAsset(path.join(__dirname, '../api')),
       timeout: cdk.Duration.seconds(30),
       environment: {
-        NODE_ENV: 'production'
+        NODE_ENV: 'production',
+        SITES_BUCKET_NAME: sitesBucket.bucketName,
+        COGNITO_USER_POOL_ID: userPool.userPoolId,
+        COGNITO_CLIENT_ID: userPoolClient.userPoolClientId,
       },
     });
 
@@ -198,6 +209,9 @@ export class OnprtyCdkStack extends cdk.Stack {
         resources: ['*'],
       })
     );
+
+    // Grant S3 permissions to Lambda
+    sitesBucket.grantReadWrite(apiLambda);
 
     // API Gateway
     const api = new cdk.aws_apigatewayv2.HttpApi(this, 'OnprtyApi', {
@@ -223,6 +237,18 @@ export class OnprtyCdkStack extends cdk.Stack {
       integration: lambdaIntegration,
     });
 
+    api.addRoutes({
+      path: '/sites',
+      methods: [cdk.aws_apigatewayv2.HttpMethod.GET, cdk.aws_apigatewayv2.HttpMethod.POST],
+      integration: lambdaIntegration,
+    });
+
+    api.addRoutes({
+      path: '/sites/{id}',
+      methods: [cdk.aws_apigatewayv2.HttpMethod.GET, cdk.aws_apigatewayv2.HttpMethod.PUT, cdk.aws_apigatewayv2.HttpMethod.DELETE],
+      integration: lambdaIntegration,
+    });
+
     // Rate limiting
     new cdk.aws_apigatewayv2.CfnStage(this, 'OnprtyApiRateLimitedStage', {
       apiId: api.apiId,
@@ -232,16 +258,6 @@ export class OnprtyCdkStack extends cdk.Stack {
         throttlingBurstLimit: 5,   // max 5 concurrent requests
         throttlingRateLimit: 10,   // 10 requests per second
       },
-    });
-
-
-
-    // S3 Bucket for generated sites
-    const sitesBucket = new cdk.aws_s3.Bucket(this, 'OnprtySitesBucket', {
-      bucketName: `onprty-sites-${this.account}-${this.region}`,
-      removalPolicy: cdk.RemovalPolicy.DESTROY,
-      blockPublicAccess: cdk.aws_s3.BlockPublicAccess.BLOCK_ALL,
-      autoDeleteObjects: true,
     });
 
     // CloudFront OAI for sites
