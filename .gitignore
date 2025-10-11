@@ -33,3 +33,10 @@ cdk/.cdk.staging
 cdk/cdk.out
 cdk/.env
 texttosite
+
+# Environment files
+.env
+.env.local
+.env.development
+.env.production
+.env.*.local
