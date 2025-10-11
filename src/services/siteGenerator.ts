@@ -40,60 +40,27 @@ import callToActionTemplate from './templates/mono/call-to-action.html?raw';
 import teamMembersTemplate from './templates/mono/team-members.html?raw';
 import teamMemberItemTemplate from './templates/mono/team-member-item.html?raw';
 
-const API_URL = import.meta.env.VITE_API_URL || 'https://api.onprty.com';
+const API_URL = import.meta.env.VITE_API_URL || 'https://ln31vyuhij.execute-api.us-east-1.amazonaws.com';
 
 export async function generateSite(prompt: string): Promise<{ siteData: SiteData; siteFiles: SiteFiles }> {
-  try {
-    const response = await fetch(`${API_URL}/generate`, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({
-        user: prompt,
-        system: systemPromptText,
-      }),
-    });
+  const response = await fetch(`${API_URL}/generate`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({
+      user: prompt,
+      system: systemPromptText,
+    }),
+  });
 
-    if (!response.ok) {
-      throw new Error(`API error: ${response.statusText}`);
-    }
-
-    const data = await response.json();
-    const siteData: SiteData = JSON.parse(data.output);
-    const siteFiles = generateHTML(siteData);
-    
-    return { siteData, siteFiles };
-  } catch {
-    // Fallback mock data
-    const mockSiteData: SiteData = {
-      siteMetadata: {
-        title: "Generated Site",
-        navTitle: "My Site",
-        description: "A website generated from: " + prompt,
-        author: "OnPrty Generator"
-      },
-      pages: [
-        {
-          path: "/index.html",
-          fileName: "index.html",
-          navLabel: "Home",
-          pageTitle: "Home - Generated Site",
-          sections: [
-            {
-              type: "hero",
-              data: {
-                heading: "Welcome to Your Generated Site",
-                subheading: "This site was created from your prompt: " + prompt,
-                ctaText: "Learn More",
-                ctaLink: "#about"
-              }
-            }
-          ]
-        }
-      ]
-    };
-    const siteFiles = generateHTML(mockSiteData);
-    return { siteData: mockSiteData, siteFiles };
+  if (!response.ok) {
+    throw new Error(`API error: ${response.statusText}`);
   }
+
+  const data = await response.json();
+  const siteData: SiteData = JSON.parse(data.output);
+  const siteFiles = generateHTML(siteData);
+  
+  return { siteData, siteFiles };
 }
 
 function generateHTML(siteData: SiteData): SiteFiles {
