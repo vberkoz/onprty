@@ -181,12 +181,13 @@ export class OnprtyCdkStack extends cdk.Stack {
 
     userPoolClient.node.addDependency(googleProvider);
 
-    // S3 Bucket for generated sites (private)
-    const sitesBucket = new cdk.aws_s3.Bucket(this, 'OnprtySitesBucket', {
-      bucketName: `onprty-sites-${this.account}-${this.region}`,
+    // DynamoDB table for site schemas
+    const sitesTable = new cdk.aws_dynamodb.Table(this, 'OnprtySitesTable', {
+      tableName: 'onprty-sites',
+      partitionKey: { name: 'userId', type: cdk.aws_dynamodb.AttributeType.STRING },
+      sortKey: { name: 'siteId', type: cdk.aws_dynamodb.AttributeType.STRING },
+      billingMode: cdk.aws_dynamodb.BillingMode.PAY_PER_REQUEST,
       removalPolicy: cdk.RemovalPolicy.DESTROY,
-      blockPublicAccess: cdk.aws_s3.BlockPublicAccess.BLOCK_ALL,
-      autoDeleteObjects: true,
     });
 
     // S3 Bucket for published sites (public)
@@ -250,9 +251,10 @@ export class OnprtyCdkStack extends cdk.Stack {
       timeout: cdk.Duration.seconds(30),
       environment: {
         NODE_ENV: 'production',
-        SITES_BUCKET_NAME: sitesBucket.bucketName,
+        SITES_TABLE_NAME: sitesTable.tableName,
         PUBLIC_SITES_BUCKET_NAME: publicSitesBucket.bucketName,
         PUBLIC_DOMAIN: `sites.${domain}`,
+        CLOUDFRONT_DISTRIBUTION_ID: publicSitesDistribution.distributionId,
         COGNITO_USER_POOL_ID: userPool.userPoolId,
         COGNITO_CLIENT_ID: userPoolClient.userPoolClientId,
       },
@@ -269,8 +271,16 @@ export class OnprtyCdkStack extends cdk.Stack {
       })
     );
 
-    sitesBucket.grantReadWrite(apiLambda);
+    sitesTable.grantReadWriteData(apiLambda);
     publicSitesBucket.grantReadWrite(apiLambda);
+    
+    apiLambda.addToRolePolicy(
+      new cdk.aws_iam.PolicyStatement({
+        effect: cdk.aws_iam.Effect.ALLOW,
+        actions: ['cloudfront:CreateInvalidation'],
+        resources: [`arn:aws:cloudfront::${this.account}:distribution/${publicSitesDistribution.distributionId}`],
+      })
+    );
 
     // API Gateway
     const api = new cdk.aws_apigatewayv2.HttpApi(this, 'OnprtyApi', {
@@ -338,9 +348,9 @@ export class OnprtyCdkStack extends cdk.Stack {
       value: api.apiEndpoint,
       description: 'API Gateway URL for site generation',
     });
-    new cdk.CfnOutput(this, 'OnprtySitesBucketName', {
-      value: sitesBucket.bucketName,
-      description: 'S3 Bucket for hosting generated sites',
+    new cdk.CfnOutput(this, 'OnprtySitesTableName', {
+      value: sitesTable.tableName,
+      description: 'DynamoDB table for site schemas',
     });
     new cdk.CfnOutput(this, 'OnprtyPublicSitesDomain', {
       value: `https://${publicSitesDistribution.distributionDomainName}`,

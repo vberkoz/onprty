@@ -28,6 +28,12 @@ export interface SiteFiles {
   [fileName: string]: string;
 }
 
+export interface SiteSchema {
+  userPrompt: string;
+  generatedData: SiteData;
+  template: string;
+}
+
 import systemPromptText from './system-prompt.txt?raw';
 
 // Mono template imports
@@ -88,7 +94,7 @@ function getTemplate(templateName: string, fileName: string): string {
 
 const API_URL = import.meta.env.VITE_API_URL || 'https://ln31vyuhij.execute-api.us-east-1.amazonaws.com';
 
-export async function generateSite(prompt: string, template: string = 'monospace'): Promise<{ siteData: SiteData; siteFiles: SiteFiles }> {
+export async function generateSite(prompt: string, template: string = 'monospace'): Promise<{ siteData: SiteData; siteFiles: SiteFiles; schema: SiteSchema }> {
   const response = await fetch(`${API_URL}/generate`, {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
@@ -106,17 +112,16 @@ export async function generateSite(prompt: string, template: string = 'monospace
   const siteData: SiteData = JSON.parse(data.output);
   const siteFiles = generateHTML(siteData, template);
   
-  // Add the original JSON schema to files with user prompt
-  const schemaWithPrompt = {
+  const schema = {
     userPrompt: prompt,
-    generatedData: siteData
+    generatedData: siteData,
+    template,
   };
-  siteFiles['schema.json'] = JSON.stringify(schemaWithPrompt, null, 2);
   
-  return { siteData, siteFiles };
+  return { siteData, siteFiles, schema };
 }
 
-function generateHTML(siteData: SiteData, template: string = 'monospace'): SiteFiles {
+export function generateHTML(siteData: SiteData, template: string = 'monospace'): SiteFiles {
   const siteFiles: SiteFiles = {};
   
   // Generate navigation

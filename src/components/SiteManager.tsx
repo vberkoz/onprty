@@ -1,5 +1,5 @@
 import React from 'react';
-import { type StoredSite, downloadSiteAsZip } from '../services/siteStorageS3';
+import { type StoredSite, downloadSiteAsZip, getSite } from '../services/siteStorageS3';
 import Dropdown from './Dropdown';
 import Button from './Button';
 import Spinner from './Spinner';
@@ -9,6 +9,7 @@ interface SiteManagerProps {
   selectedSite: StoredSite | null;
   previewFile: string;
   isLoading: boolean;
+  isPublishing: boolean;
   onSiteSelect: (site: StoredSite) => void;
   onFileSelect: (fileName: string) => void;
   onDeleteSite: (siteId: string, siteName: string) => void;
@@ -21,12 +22,26 @@ const SiteManager: React.FC<SiteManagerProps> = ({
   selectedSite,
   previewFile,
   isLoading,
+  isPublishing,
   onSiteSelect,
   onFileSelect,
   onDeleteSite,
   onPublishSite,
   onUnpublishSite
 }) => {
+  const handleSiteSelect = async (siteName: string) => {
+    const site = sites.find(s => s.name === siteName);
+    if (site) {
+      try {
+        const fullSite = await getSite(site.id);
+        if (fullSite) {
+          onSiteSelect(fullSite);
+        }
+      } catch (error) {
+        console.error('Failed to load site:', error);
+      }
+    }
+  };
   return (
     <div className="my-sites-section">
       <h2>📂 My Sites ({sites.length})</h2>
@@ -42,10 +57,7 @@ const SiteManager: React.FC<SiteManagerProps> = ({
             <Dropdown
               value={selectedSite?.name || 'Select a site'}
               options={sites.map(site => site.name)}
-              onChange={(siteName) => {
-                const site = sites.find(s => s.name === siteName);
-                if (site) onSiteSelect(site);
-              }}
+              onChange={handleSiteSelect}
             />
           </label>
           {selectedSite && (
@@ -54,7 +66,7 @@ const SiteManager: React.FC<SiteManagerProps> = ({
                 File:
                 <Dropdown
                   value={previewFile}
-                  options={Object.keys(selectedSite.files)}
+                  options={Object.keys(selectedSite.files || {})}
                   onChange={onFileSelect}
                 />
               </label>
@@ -68,21 +80,22 @@ const SiteManager: React.FC<SiteManagerProps> = ({
               )}
               <div className="site-controls">
                 {selectedSite.status === 'published' ? (
-                  <Button onClick={() => onUnpublishSite(selectedSite.id)} size="small" variant="secondary">
+                  <Button onClick={() => onUnpublishSite(selectedSite.id)} size="small" variant="secondary" loading={isPublishing}>
                     Unpublish
                   </Button>
                 ) : (
-                  <Button onClick={() => onPublishSite(selectedSite.id)} size="small">
+                  <Button onClick={() => onPublishSite(selectedSite.id)} size="small" loading={isPublishing}>
                     Publish
                   </Button>
                 )}
-                <Button onClick={() => downloadSiteAsZip(selectedSite)} size="small">
+                <Button onClick={() => downloadSiteAsZip(selectedSite)} size="small" disabled={isPublishing}>
                   Download
                 </Button>
                 <Button 
                   onClick={() => onDeleteSite(selectedSite.id, selectedSite.name)} 
                   variant="danger" 
                   size="small"
+                  disabled={isPublishing}
                 >
                   Delete
                 </Button>

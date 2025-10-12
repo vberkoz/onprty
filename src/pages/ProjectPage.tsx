@@ -3,7 +3,7 @@
 import React, { useState, useEffect, useCallback } from "react";
 import { useAuth } from '../context/AuthContext';
 import { generateSite } from '../services/siteGenerator';
-import { initDB, saveSite, getSites, deleteSite, publishSite, unpublishSite, type StoredSite } from '../services/siteStorageS3';
+import { initDB, saveSite, getSites, getSite, deleteSite, publishSite, unpublishSite, type StoredSite } from '../services/siteStorageS3';
 import GlobalHeader from '../components/GlobalHeader';
 import SiteGenerator from '../components/SiteGenerator';
 import SiteManager from '../components/SiteManager';
@@ -17,6 +17,7 @@ const ProjectPage: React.FC = () => {
   const [selectedTemplate, setSelectedTemplate] = useState('monospace');
   const [isGenerating, setIsGenerating] = useState(false);
   const [isLoadingSites, setIsLoadingSites] = useState(true);
+  const [isPublishing, setIsPublishing] = useState(false);
   const [previewFile, setPreviewFile] = useState('index.html');
   const [confirmDialog, setConfirmDialog] = useState<{ isOpen: boolean; siteId: string; siteName: string }>({ isOpen: false, siteId: '', siteName: '' });
   const [sidebarVisible, setSidebarVisible] = useState(true);
@@ -36,7 +37,10 @@ const ProjectPage: React.FC = () => {
       const loadedSites = await getSites();
       setSites(loadedSites);
       if (loadedSites.length > 0 && !selectedSite) {
-        setSelectedSite(loadedSites[0]);
+        const firstSite = await getSite(loadedSites[0].id);
+        if (firstSite) {
+          setSelectedSite(firstSite);
+        }
       }
     } catch (error) {
       console.error('Failed to load sites:', error);
@@ -62,13 +66,14 @@ const ProjectPage: React.FC = () => {
 
     setIsGenerating(true);
     try {
-      const { siteData, siteFiles } = await generateSite(prompt, selectedTemplate);
+      const { siteData, siteFiles, schema } = await generateSite(prompt, selectedTemplate);
       
       const tempSite: StoredSite = {
         id: 'temp-' + Date.now(),
         name: siteData.siteMetadata.title,
         description: siteData.siteMetadata.description,
         files: siteFiles,
+        schema,
         status: 'draft',
         createdAt: new Date(),
         updatedAt: new Date()
@@ -81,7 +86,7 @@ const ProjectPage: React.FC = () => {
         await saveSite({
           name: siteData.siteMetadata.title,
           description: siteData.siteMetadata.description,
-          files: siteFiles,
+          schema,
           status: 'draft'
         });
         await loadSites();
@@ -99,30 +104,36 @@ const ProjectPage: React.FC = () => {
   };
 
   const handlePublishSite = async (siteId: string) => {
+    setIsPublishing(true);
     try {
-      const publishedUrl = await publishSite(siteId);
-      await loadSites();
-      const updatedSite = sites.find(s => s.id === siteId);
-      if (updatedSite) {
-        setSelectedSite({ ...updatedSite, status: 'published', publishedUrl });
+      if (!selectedSite?.files) {
+        alert('No files to publish');
+        return;
       }
+      const publishedUrl = await publishSite(siteId, selectedSite.files);
+      setSelectedSite({ ...selectedSite, status: 'published', publishedUrl });
+      await loadSites();
     } catch (error) {
       console.error('Failed to publish site:', error);
       alert('Failed to publish site. Please try again.');
+    } finally {
+      setIsPublishing(false);
     }
   };
 
   const handleUnpublishSite = async (siteId: string) => {
+    setIsPublishing(true);
     try {
       await unpublishSite(siteId);
-      await loadSites();
-      const updatedSite = sites.find(s => s.id === siteId);
-      if (updatedSite) {
-        setSelectedSite({ ...updatedSite, status: 'draft', publishedUrl: undefined });
+      if (selectedSite) {
+        setSelectedSite({ ...selectedSite, status: 'draft', publishedUrl: undefined });
       }
+      await loadSites();
     } catch (error) {
       console.error('Failed to unpublish site:', error);
       alert('Failed to unpublish site. Please try again.');
+    } finally {
+      setIsPublishing(false);
     }
   };
 
@@ -180,6 +191,7 @@ const ProjectPage: React.FC = () => {
               selectedSite={selectedSite}
               previewFile={previewFile}
               isLoading={isLoadingSites}
+              isPublishing={isPublishing}
               onSiteSelect={setSelectedSite}
               onFileSelect={setPreviewFile}
               onDeleteSite={handleDeleteSite}

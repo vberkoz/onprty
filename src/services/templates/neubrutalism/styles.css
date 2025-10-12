@@ -38,7 +38,7 @@ body {
   background-color: var(--color-secondary); /* High-contrast background */
   padding: 0 1rem;
   /* Strong, visible border around the main container */
-  border: var(--border-size) solid var(--color-primary);
+  /* border: var(--border-size) solid var(--color-primary); */
 }
 
 /* Typography and Links */
