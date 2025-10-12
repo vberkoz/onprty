@@ -2,106 +2,149 @@
 
 ## Code Quality Standards
 
-### TypeScript Usage
-- **Strict typing**: All files use TypeScript with explicit interface definitions
-- **Interface-first design**: Define interfaces before implementation (e.g., `AuthTokens`, `StoredSite`, `SiteData`)
-- **Type safety**: Use proper typing for function parameters and return values
-- **Optional chaining**: Leverage TypeScript's optional properties (`email?: string`)
+### TypeScript Usage (5/5 files)
+- **Strict TypeScript**: All files use TypeScript with explicit interface definitions
+- **Interface-First Design**: Define interfaces before implementation (StoredSite, SiteData, AuthTokens, User)
+- **Type Safety**: Comprehensive type annotations for function parameters and return values
+- **Generic Types**: Use generic constraints where appropriate (`Record<string, unknown>`)
 
-### Import/Export Patterns
-- **ES6 modules**: Use `import`/`export` syntax consistently
-- **Named exports**: Prefer named exports over default exports for utilities
-- **Template imports**: Use Vite's `?raw` suffix for importing text files as strings
-- **Environment variables**: Access via `import.meta.env.VITE_*` pattern
+### Import Organization (5/5 files)
+- **React imports first**: `import React, { ... } from 'react'`
+- **External libraries second**: Third-party dependencies grouped together
+- **Internal imports last**: Local components, services, and utilities
+- **Raw imports**: Use `?raw` suffix for template files (`import template from './file.html?raw'`)
 
-### Error Handling
-- **Promise-based**: Use async/await with proper error handling
-- **Graceful degradation**: Handle missing templates and API failures
+### Error Handling Patterns (5/5 files)
+- **Try-catch blocks**: Wrap async operations in comprehensive error handling
+- **Error logging**: Use `console.error()` for debugging information
 - **User feedback**: Provide meaningful error messages to users
-- **Validation**: Check for required data before processing
+- **Graceful degradation**: Return empty arrays/null instead of throwing when appropriate
+- **Authentication errors**: Special handling for authorization failures with logout triggers
 
-## Architectural Patterns
+## Structural Conventions
 
-### React Component Structure
-- **Functional components**: Use React functional components with hooks
-- **Context pattern**: Centralize state management with React Context
-- **Custom hooks**: Extract reusable logic into custom hooks (`useAuth`)
-- **Component composition**: Build complex UIs from smaller, focused components
+### Component Architecture (3/3 React files)
+- **Functional Components**: Use React.FC type annotation consistently
+- **Props interfaces**: Define explicit interfaces for component props
+- **Default exports**: Export components as default, hooks as named exports
+- **Component composition**: Break complex components into smaller, focused pieces
 
-### State Management
-- **Local state**: Use `useState` for component-specific state
-- **Global state**: Use Context API for shared authentication state
-- **Persistence**: Store user data in localStorage for session management
-- **Immutable updates**: Follow React's immutable state update patterns
+### State Management (3/3 React files)
+- **useState hooks**: Prefer useState for local component state
+- **useCallback**: Memoize functions that depend on props/state
+- **useEffect**: Handle side effects with proper dependency arrays
+- **Context pattern**: Use React Context for global state (AuthContext)
 
-### Service Layer Architecture
-- **Separation of concerns**: Keep business logic in dedicated service files
-- **API abstraction**: Abstract external API calls in service modules
-- **Template system**: Modular template-based content generation
-- **Storage abstraction**: Use IndexedDB through service layer functions
+### Service Layer Pattern (3/3 service files)
+- **Single responsibility**: Each service handles one domain (auth, storage, generation)
+- **Async/await**: Consistent use of modern async patterns
+- **Environment variables**: Use `import.meta.env` for configuration
+- **Token management**: Centralized access token handling with localStorage
 
 ## Naming Conventions
 
-### File Naming
-- **PascalCase**: React components (`AuthContext.tsx`, `ProjectPage.tsx`)
-- **camelCase**: Service files (`siteGenerator.ts`, `siteStorage.ts`)
-- **kebab-case**: Configuration files (`eslint.config.js`)
+### File Naming (5/5 files)
+- **PascalCase**: React components (`ProjectPage.tsx`, `AuthContext.tsx`)
+- **camelCase**: Services and utilities (`siteGenerator.ts`, `siteStorageS3.ts`)
+- **kebab-case**: Template files and assets
 - **Descriptive names**: Clear, purpose-driven file names
 
-### Variable Naming
-- **camelCase**: Variables and functions (`isAuthenticated`, `processAuthRedirect`)
-- **UPPER_CASE**: Constants and environment variables (`DB_NAME`, `VITE_API_URL`)
-- **Descriptive**: Self-documenting variable names (`expiresAt`, `navItemsHtml`)
+### Variable Naming (5/5 files)
+- **camelCase**: Variables and functions (`selectedSite`, `handleGenerate`)
+- **PascalCase**: Interfaces and types (`StoredSite`, `SiteMetadata`)
+- **UPPER_CASE**: Constants and environment variables (`API_BASE_URL`, `BUCKET_NAME`)
+- **Descriptive prefixes**: Boolean variables with `is`, `has`, `should` prefixes
 
-### Interface Naming
-- **PascalCase**: Interface names (`AuthContextType`, `SiteMetadata`)
-- **Descriptive**: Clear purpose indication (`StoredSite`, `AuthTokens`)
-- **Type suffix**: Use `Type` suffix for context interfaces
+### Function Naming (5/5 files)
+- **Verb-noun pattern**: `generateSite`, `saveSite`, `deleteSite`
+- **Handler prefix**: Event handlers use `handle` prefix (`handleGenerate`, `handleDeleteSite`)
+- **Get/set pattern**: Data access functions (`getSites`, `getAccessToken`)
+- **Async indication**: Async functions clearly indicate their asynchronous nature
 
-## Development Practices
+## API and External Integration Patterns
 
-### Code Organization
-- **Feature-based**: Group related files by feature/domain
-- **Consistent structure**: Follow established directory patterns
-- **Single responsibility**: Each file/function has one clear purpose
-- **Modular design**: Build reusable, composable components
+### HTTP Client Patterns (3/3 API files)
+- **Fetch API**: Consistent use of native fetch for HTTP requests
+- **Headers standardization**: Always include `Content-Type` and `Authorization`
+- **Response validation**: Check `response.ok` before processing
+- **Error propagation**: Throw meaningful errors for failed requests
 
-### Performance Considerations
-- **Lazy loading**: Use React.lazy for code splitting where appropriate
-- **Memoization**: Use `useCallback` for stable function references
-- **Efficient rendering**: Minimize unnecessary re-renders
-- **Asset optimization**: Use Vite's built-in optimizations
+### Authentication Integration (3/3 auth-related files)
+- **Bearer tokens**: Use `Bearer ${token}` format for authorization headers
+- **Token validation**: Check token expiration before API calls
+- **Automatic logout**: Trigger logout on authentication failures
+- **JWT decoding**: Manual JWT payload extraction for user information
 
-### Security Practices
-- **Environment variables**: Store sensitive data in environment variables
-- **Token management**: Secure handling of authentication tokens
-- **Input validation**: Validate user inputs and API responses
-- **HTTPS**: Use secure protocols for API communication
+### AWS Service Integration (2/2 AWS files)
+- **SDK imports**: Use specific AWS SDK imports (`@aws-sdk/client-s3`)
+- **Environment configuration**: Leverage environment variables for AWS configuration
+- **Error handling**: Specific handling for AWS service errors (NoSuchKey, etc.)
+- **Resource naming**: Consistent S3 key patterns (`sites/{userId}/{siteId}/`)
 
-## Template System Guidelines
+## Template and Content Management
 
-### Template Structure
-- **Modular sections**: Break templates into reusable section components
-- **Placeholder syntax**: Use `{{variable}}` syntax for template variables
-- **Nested templates**: Support item-level templates within sections
-- **CSS variables**: Use CSS custom properties for theming
+### Template System (2/2 template files)
+- **Placeholder syntax**: Use `{{variable}}` for template substitution
+- **Template registry**: Centralized template storage with nested objects
+- **Raw imports**: Import template files as raw strings
+- **Content mapping**: Transform data structures before template injection
 
-### Content Generation
-- **Data-driven**: Generate content from structured data objects
-- **Type safety**: Define interfaces for template data structures
-- **Fallback handling**: Provide defaults for missing template data
-- **Responsive design**: Ensure generated content works across devices
+### File Processing (2/2 generation files)
+- **MIME type detection**: Set appropriate Content-Type based on file extensions
+- **Content transformation**: Process content before storage (script injection, etc.)
+- **Blob handling**: Use Blob API for client-side file generation
+- **URL management**: Proper cleanup of object URLs after use
 
-## API Integration Patterns
+## React-Specific Patterns
 
-### HTTP Client Usage
-- **Fetch API**: Use native fetch for HTTP requests
-- **Error handling**: Check response status and handle failures
-- **Content-Type**: Set appropriate headers for JSON requests
-- **Environment configuration**: Use environment variables for API URLs
+### Hook Usage (3/3 React files)
+- **Dependency arrays**: Always specify dependencies for useEffect and useCallback
+- **Custom hooks**: Extract reusable logic into custom hooks (`useAuth`)
+- **State initialization**: Use functional updates for complex state changes
+- **Cleanup functions**: Return cleanup functions from useEffect when needed
 
-### Authentication Flow
-- **OAuth2**: Implement standard OAuth2 flows with Cognito
-- **Token storage**: Secure token storage in localStorage
-- **Automatic refresh**: Handle token expiration gracefully
-- **Redirect handling**: Process OAuth callbacks properly
+### Event Handling (3/3 React files)
+- **Form submission**: Use `e.preventDefault()` for form handlers
+- **Async handlers**: Wrap async operations in try-catch blocks
+- **Loading states**: Manage loading states during async operations
+- **User feedback**: Provide immediate feedback for user actions
+
+### Component Lifecycle (3/3 React files)
+- **Initialization**: Use useEffect for component initialization
+- **Cleanup**: Proper cleanup of event listeners and resources
+- **Conditional rendering**: Use early returns for authentication checks
+- **State synchronization**: Keep related state variables in sync
+
+## Security and Best Practices
+
+### Data Validation (5/5 files)
+- **Input sanitization**: Validate user inputs before processing
+- **Type checking**: Runtime type validation for external data
+- **Null checks**: Defensive programming with null/undefined checks
+- **Token validation**: Verify token existence and expiration
+
+### Storage Security (3/3 storage files)
+- **User isolation**: Separate user data with userId prefixes
+- **Token storage**: Use localStorage for client-side token persistence
+- **Data encryption**: Rely on HTTPS for data transmission security
+- **Access control**: Validate user permissions before data operations
+
+### Error Recovery (5/5 files)
+- **Graceful failures**: Continue operation when non-critical operations fail
+- **User notification**: Inform users of errors without exposing technical details
+- **Retry logic**: Implement retry mechanisms for transient failures
+- **Fallback values**: Provide sensible defaults when data is unavailable
+
+## Performance Optimization
+
+### Code Splitting (3/3 React files)
+- **Lazy loading**: Use dynamic imports for large components
+- **Memoization**: Use useCallback and useMemo for expensive operations
+- **State optimization**: Minimize unnecessary re-renders
+- **Bundle optimization**: Import only needed parts of libraries
+
+### Resource Management (5/5 files)
+- **Memory cleanup**: Revoke object URLs and remove event listeners
+- **Efficient updates**: Batch state updates when possible
+- **Caching strategies**: Cache frequently accessed data
+- **Network optimization**: Minimize API calls through intelligent caching
