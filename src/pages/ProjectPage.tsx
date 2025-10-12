@@ -1,111 +1,37 @@
 // src/pages/ProjectPage.tsx
 
-import React, { useState, useEffect, useRef } from "react";
+import React, { useState, useEffect, useCallback } from "react";
 import { useAuth } from '../context/AuthContext';
 import { generateSite } from '../services/siteGenerator';
-import { initDB, saveSite, getSites, deleteSite, downloadSiteAsZip, type StoredSite } from '../services/siteStorageS3';
-
-const ConfirmDialog: React.FC<{
-  isOpen: boolean;
-  title: string;
-  message: string;
-  onConfirm: () => void;
-  onCancel: () => void;
-}> = ({ isOpen, title, message, onConfirm, onCancel }) => {
-  if (!isOpen) return null;
-
-  return (
-    <div className="dialog-overlay">
-      <div className="dialog-content">
-        <h3>{title}</h3>
-        <p>{message}</p>
-        <div className="dialog-actions">
-          <button className="dialog-button secondary" onClick={onCancel}>
-            Cancel
-          </button>
-          <button className="dialog-button primary" onClick={onConfirm}>
-            Delete
-          </button>
-        </div>
-      </div>
-    </div>
-  );
-};
-
-const FileDropdown: React.FC<{
-  value: string;
-  options: string[];
-  onChange: (value: string) => void;
-}> = ({ value, options, onChange }) => {
-  const [isOpen, setIsOpen] = useState(false);
-  const dropdownRef = useRef<HTMLDivElement>(null);
-
-  useEffect(() => {
-    const handleClickOutside = (event: MouseEvent) => {
-      if (dropdownRef.current && !dropdownRef.current.contains(event.target as Node)) {
-        setIsOpen(false);
-      }
-    };
-    document.addEventListener('mousedown', handleClickOutside);
-    return () => document.removeEventListener('mousedown', handleClickOutside);
-  }, []);
-
-  return (
-    <div className="custom-dropdown" ref={dropdownRef}>
-      <button
-        className="dropdown-trigger"
-        onClick={() => setIsOpen(!isOpen)}
-        type="button"
-      >
-        <span>{value}</span>
-        <span className={`dropdown-arrow ${isOpen ? 'open' : ''}`}>▼</span>
-      </button>
-      {isOpen && (
-        <div className="dropdown-menu">
-          {options.map((option) => (
-            <button
-              key={option}
-              className={`dropdown-item ${option === value ? 'selected' : ''}`}
-              onClick={() => {
-                onChange(option);
-                setIsOpen(false);
-              }}
-              type="button"
-            >
-              {option}
-            </button>
-          ))}
-        </div>
-      )}
-    </div>
-  );
-};
+import { initDB, saveSite, getSites, deleteSite, type StoredSite } from '../services/siteStorageS3';
+import GlobalHeader from '../components/GlobalHeader';
+import SiteGenerator from '../components/SiteGenerator';
+import SiteManager from '../components/SiteManager';
+import SitePreview from '../components/SitePreview';
+import ConfirmDialog from '../components/ConfirmDialog';
 
 const ProjectPage: React.FC = () => {
   const [sites, setSites] = useState<StoredSite[]>([]);
   const [selectedSite, setSelectedSite] = useState<StoredSite | null>(null);
   const [prompt, setPrompt] = useState('');
+  const [selectedTemplate, setSelectedTemplate] = useState('mono');
   const [isGenerating, setIsGenerating] = useState(false);
+  const [isLoadingSites, setIsLoadingSites] = useState(true);
   const [previewFile, setPreviewFile] = useState('index.html');
   const [confirmDialog, setConfirmDialog] = useState<{ isOpen: boolean; siteId: string; siteName: string }>({ isOpen: false, siteId: '', siteName: '' });
+  const [sidebarVisible, setSidebarVisible] = useState(true);
   const { user, isAuthenticated, logout } = useAuth();
 
   const displayName = user?.given_name || user?.email || 'User';
 
-  useEffect(() => {
-    const init = async () => {
-      await initDB();
-      await loadSites();
-    };
-    init();
-  }, [isAuthenticated]);
-
-  const loadSites = async () => {
+  const loadSites = useCallback(async () => {
     if (!isAuthenticated) {
       setSites([]);
+      setIsLoadingSites(false);
       return;
     }
     
+    setIsLoadingSites(true);
     try {
       const loadedSites = await getSites();
       setSites(loadedSites);
@@ -117,8 +43,18 @@ const ProjectPage: React.FC = () => {
       if (error instanceof Error && error.message.includes('authorization')) {
         logout();
       }
+    } finally {
+      setIsLoadingSites(false);
     }
-  };
+  }, [isAuthenticated, selectedSite, logout]);
+
+  useEffect(() => {
+    const init = async () => {
+      await initDB();
+      await loadSites();
+    };
+    init();
+  }, [isAuthenticated, loadSites]);
 
   const handleGenerate = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -126,18 +62,36 @@ const ProjectPage: React.FC = () => {
 
     setIsGenerating(true);
     try {
-      const { siteData, siteFiles } = await generateSite(prompt);
+      const { siteData, siteFiles } = await generateSite(prompt, selectedTemplate);
       
-      const siteId = await saveSite({
+      // Create temporary site object for immediate preview
+      const tempSite: StoredSite = {
+        id: 'temp-' + Date.now(),
         name: siteData.siteMetadata.title,
         description: siteData.siteMetadata.description,
         files: siteFiles,
-        status: 'draft'
-      });
-
-      await loadSites();
-      const newSite = sites.find(s => s.id === siteId);
-      if (newSite) setSelectedSite(newSite);
+        status: 'draft',
+        createdAt: new Date(),
+        updatedAt: new Date()
+      };
+      
+      // Display immediately
+      setSelectedSite(tempSite);
+      setPreviewFile('index.html');
+      
+      // Save to storage in background
+      try {
+        await saveSite({
+          name: siteData.siteMetadata.title,
+          description: siteData.siteMetadata.description,
+          files: siteFiles,
+          status: 'draft'
+        });
+        await loadSites();
+      } catch (saveError) {
+        console.error('Failed to save site:', saveError);
+      }
+      
       setPrompt('');
     } catch (error) {
       console.error('Failed to generate site:', error);
@@ -169,143 +123,53 @@ const ProjectPage: React.FC = () => {
     setConfirmDialog({ isOpen: false, siteId: '', siteName: '' });
   };
 
-  const renderPreview = () => {
-    if (!selectedSite || !selectedSite.files[previewFile]) {
-      return <div className="no-preview"><p>Select a site to view preview</p></div>;
-    }
-
-    // Check if it's a code file (CSS, JS, or JSON)
-    if (previewFile.endsWith('.css') || previewFile.endsWith('.js') || previewFile.endsWith('.json')) {
-      const content = selectedSite.files[previewFile];
-      return (
-        <div className="code-preview">
-          <pre className="code-content">
-            <code>{content}</code>
-          </pre>
-        </div>
-      );
-    }
-
-    let content = selectedSite.files[previewFile];
-    
-    // Inject navigation handler script
-    const navigationScript = `
-      <script>
-        document.addEventListener('click', function(e) {
-          if (e.target.tagName === 'A' && e.target.href) {
-            e.preventDefault();
-            const href = e.target.getAttribute('href');
-            if (href && href.endsWith('.html')) {
-              window.parent.postMessage({type: 'navigate', file: href}, '*');
-            }
-          }
-        });
-      </script>
-    `;
-    
-    // Insert script before closing body tag
-    content = content.replace('</body>', navigationScript + '</body>');
-    
-    const blob = new Blob([content], { type: 'text/html' });
-    const url = URL.createObjectURL(blob);
-
-    return (
-      <iframe
-        key={selectedSite.id + previewFile}
-        src={url}
-        title="Site Preview"
-        className="site-preview-iframe"
-        onLoad={() => {
-          URL.revokeObjectURL(url);
-          // Listen for navigation messages from iframe
-          const handleMessage = (event: MessageEvent) => {
-            if (event.data.type === 'navigate' && event.data.file) {
-              setPreviewFile(event.data.file);
-            }
-          };
-          window.addEventListener('message', handleMessage);
-          return () => window.removeEventListener('message', handleMessage);
-        }}
-      />
-    );
-  };
-
   if (!isAuthenticated) {
     return null;
   }
 
   return (
-    <div className="split-view-container">
-      <aside className="control-panel-aside">
-        <div className="generate-section">
-          <h2>✨ Generate New Site</h2>
-          <form className="generation-form" onSubmit={handleGenerate}>
-            <label>
-              Describe your website:
-              <textarea 
-                value={prompt}
-                onChange={(e) => setPrompt(e.target.value)}
-                placeholder="e.g., A modern landing page for a tech startup with hero section, features, and team"
-                rows={3}
-                disabled={isGenerating}
-              />
-            </label>
-            <button type="submit" disabled={!prompt.trim() || isGenerating}>
-              {isGenerating ? 'Generating...' : 'Generate Site'}
-            </button>
-          </form>
-        </div>
-
-        <hr className="divider" />
-
-        <div className="my-sites-section">
-          <h2>📂 My Sites ({sites.length})</h2>
-          <ul className="site-list">
-            {sites.map((site) => (
-              <li
-                key={site.id}
-                className={`site-card ${selectedSite?.id === site.id ? "active-preview" : ""}`}
-              >
-                <div className="site-info">
-                  <span className="site-name">{site.name}</span>
-                  <span className={`site-status status-${site.status}`}>
-                    {site.status}
-                  </span>
-                </div>
-                <div className="site-actions">
-                  <button onClick={() => setSelectedSite(site)}>View</button>
-                  <button onClick={() => downloadSiteAsZip(site)}>Download</button>
-                  <button onClick={() => handleDeleteSite(site.id, site.name)} className="delete-btn">Delete</button>
-                </div>
-              </li>
-            ))}
-          </ul>
-          {sites.length === 0 && (
-            <p className="no-sites">No sites yet. Generate your first site above!</p>
-          )}
-        </div>
+    <div className="app-container">
+      <GlobalHeader
+        displayName={displayName}
+        sidebarVisible={sidebarVisible}
+        onToggleSidebar={() => setSidebarVisible(!sidebarVisible)}
+        onLogout={logout}
+      />
       
-        <div className="nav-user-controls">
-          <span className="user-greeting">Hello, {displayName}</span>
-          <button onClick={logout} className="logout-button-small">
-            Logout
-          </button>
-        </div>
-      </aside>
-
-      <section className="preview-iframe-section">
-        {selectedSite && (
-          <div className="preview-header">
-            <strong>{selectedSite.name}</strong>
-            <FileDropdown
-              value={previewFile}
-              options={Object.keys(selectedSite.files)}
-              onChange={setPreviewFile}
+      <div className="split-view-container">
+        {sidebarVisible && (
+          <aside className="control-panel-aside">
+            <SiteGenerator
+              prompt={prompt}
+              selectedTemplate={selectedTemplate}
+              isGenerating={isGenerating}
+              onPromptChange={setPrompt}
+              onTemplateChange={setSelectedTemplate}
+              onGenerate={handleGenerate}
             />
-          </div>
+
+            <hr className="divider" />
+
+            <SiteManager
+              sites={sites}
+              selectedSite={selectedSite}
+              previewFile={previewFile}
+              isLoading={isLoadingSites}
+              onSiteSelect={setSelectedSite}
+              onFileSelect={setPreviewFile}
+              onDeleteSite={handleDeleteSite}
+            />
+          </aside>
         )}
-        {renderPreview()}
-      </section>
+
+        <section className="preview-iframe-section">
+          <SitePreview
+            selectedSite={selectedSite}
+            previewFile={previewFile}
+            onFileNavigate={setPreviewFile}
+          />
+        </section>
+      </div>
       
       <ConfirmDialog
         isOpen={confirmDialog.isOpen}
