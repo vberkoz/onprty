@@ -141,17 +141,19 @@ export async function deleteSite(id: string): Promise<void> {
   }
 }
 
-export function downloadSiteAsZip(site: StoredSite): void {
-  const files = Object.entries(site.files);
-  const zipContent = files.map(([name, content]) => 
-    `--- ${name} ---\n${content}\n`
-  ).join('\n');
+export async function downloadSiteAsZip(site: StoredSite): Promise<void> {
+  const JSZip = (await import('jszip')).default;
+  const zip = new JSZip();
   
-  const blob = new Blob([zipContent], { type: 'text/plain' });
+  Object.entries(site.files).forEach(([fileName, content]) => {
+    zip.file(fileName, content);
+  });
+  
+  const blob = await zip.generateAsync({ type: 'blob' });
   const url = URL.createObjectURL(blob);
   const a = document.createElement('a');
   a.href = url;
-  a.download = `${site.name}.txt`;
+  a.download = `${site.name}.zip`;
   document.body.appendChild(a);
   a.click();
   document.body.removeChild(a);
