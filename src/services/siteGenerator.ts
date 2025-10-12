@@ -29,20 +29,66 @@ export interface SiteFiles {
 }
 
 import systemPromptText from './system-prompt.txt?raw';
-import baseTemplate from './templates/mono/base.html?raw';
-import stylesTemplate from './templates/mono/styles.css?raw';
-import scriptTemplate from './templates/mono/script.js?raw';
-import heroTemplate from './templates/mono/hero.html?raw';
-import featuresTemplate from './templates/mono/features.html?raw';
-import featuresItemTemplate from './templates/mono/features-item.html?raw';
-import textBlockTemplate from './templates/mono/text-block.html?raw';
-import callToActionTemplate from './templates/mono/call-to-action.html?raw';
-import teamMembersTemplate from './templates/mono/team-members.html?raw';
-import teamMemberItemTemplate from './templates/mono/team-member-item.html?raw';
+
+// Mono template imports
+import monoBase from './templates/mono/base.html?raw';
+import monoStyles from './templates/mono/styles.css?raw';
+import monoScript from './templates/mono/script.js?raw';
+import monoHero from './templates/mono/hero.html?raw';
+import monoFeatures from './templates/mono/features.html?raw';
+import monoFeaturesItem from './templates/mono/features-item.html?raw';
+import monoTextBlock from './templates/mono/text-block.html?raw';
+import monoCallToAction from './templates/mono/call-to-action.html?raw';
+import monoTeamMembers from './templates/mono/team-members.html?raw';
+import monoTeamMemberItem from './templates/mono/team-member-item.html?raw';
+
+// Modern template imports
+import modernBase from './templates/modern/base.html?raw';
+import modernStyles from './templates/modern/styles.css?raw';
+import modernScript from './templates/modern/script.js?raw';
+import modernHero from './templates/modern/hero.html?raw';
+import modernFeatures from './templates/modern/features.html?raw';
+import modernFeaturesItem from './templates/modern/features-item.html?raw';
+import modernTextBlock from './templates/modern/text-block.html?raw';
+import modernCallToAction from './templates/modern/call-to-action.html?raw';
+import modernTeamMembers from './templates/modern/team-members.html?raw';
+import modernTeamMemberItem from './templates/modern/team-member-item.html?raw';
+
+// Template registry
+const templates: { [templateName: string]: { [fileName: string]: string } } = {
+  mono: {
+    'base.html': monoBase,
+    'styles.css': monoStyles,
+    'script.js': monoScript,
+    'hero.html': monoHero,
+    'features.html': monoFeatures,
+    'features-item.html': monoFeaturesItem,
+    'text-block.html': monoTextBlock,
+    'call-to-action.html': monoCallToAction,
+    'team-members.html': monoTeamMembers,
+    'team-member-item.html': monoTeamMemberItem,
+  },
+  modern: {
+    'base.html': modernBase,
+    'styles.css': modernStyles,
+    'script.js': modernScript,
+    'hero.html': modernHero,
+    'features.html': modernFeatures,
+    'features-item.html': modernFeaturesItem,
+    'text-block.html': modernTextBlock,
+    'call-to-action.html': modernCallToAction,
+    'team-members.html': modernTeamMembers,
+    'team-member-item.html': modernTeamMemberItem,
+  },
+};
+
+function getTemplate(templateName: string, fileName: string): string {
+  return templates[templateName]?.[fileName] || '';
+}
 
 const API_URL = import.meta.env.VITE_API_URL || 'https://ln31vyuhij.execute-api.us-east-1.amazonaws.com';
 
-export async function generateSite(prompt: string): Promise<{ siteData: SiteData; siteFiles: SiteFiles }> {
+export async function generateSite(prompt: string, template: string = 'mono'): Promise<{ siteData: SiteData; siteFiles: SiteFiles }> {
   const response = await fetch(`${API_URL}/generate`, {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
@@ -58,7 +104,7 @@ export async function generateSite(prompt: string): Promise<{ siteData: SiteData
 
   const data = await response.json();
   const siteData: SiteData = JSON.parse(data.output);
-  const siteFiles = generateHTML(siteData);
+  const siteFiles = generateHTML(siteData, template);
   
   // Add the original JSON schema to files with user prompt
   const schemaWithPrompt = {
@@ -70,7 +116,7 @@ export async function generateSite(prompt: string): Promise<{ siteData: SiteData
   return { siteData, siteFiles };
 }
 
-function generateHTML(siteData: SiteData): SiteFiles {
+function generateHTML(siteData: SiteData, template: string = 'mono'): SiteFiles {
   const siteFiles: SiteFiles = {};
   
   // Generate navigation
@@ -84,10 +130,13 @@ function generateHTML(siteData: SiteData): SiteFiles {
   // Generate pages
   for (const page of siteData.pages) {
     let pageContent = '';
-    
     for (const section of page.sections) {
-      pageContent += generateSection(section);
+      pageContent += generateSection(section, template);
     }
+    
+    const baseTemplate = getTemplate(template, 'base.html');
+    const stylesTemplate = getTemplate(template, 'styles.css');
+    const scriptTemplate = getTemplate(template, 'script.js');
     
     const html = baseTemplate
       .replace(/{{pageTitle}}/g, page.pageTitle)
@@ -101,6 +150,9 @@ function generateHTML(siteData: SiteData): SiteFiles {
     
     siteFiles[page.fileName] = html;
   }
+  
+  const stylesTemplate = getTemplate(template, 'styles.css');
+  const scriptTemplate = getTemplate(template, 'script.js');
   
   siteFiles['styles.css'] = stylesTemplate;
   siteFiles['script.js'] = scriptTemplate;
@@ -124,14 +176,18 @@ const mapCtaData = (data: Record<string, unknown>) => {
   };
 };
 
-function generateSection(section: SiteSection): string {
+function generateSection(section: SiteSection, template: string = 'mono'): string {
   const { type, data } = section;
   
   switch (type) {
-    case 'hero':
+    case 'hero': {
+      const heroTemplate = getTemplate(template, 'hero.html');
       return replaceTemplateVars(heroTemplate, mapCtaData(data));
+    }
     
     case 'features': {
+      const featuresTemplate = getTemplate(template, 'features.html');
+      const featuresItemTemplate = getTemplate(template, 'features-item.html');
       const items = (data.items || data.features) as Record<string, unknown>[] || [];
       const featuresHtml = items.map((item, index) => 
         replaceTemplateVars(featuresItemTemplate, {
@@ -143,16 +199,22 @@ function generateSection(section: SiteSection): string {
       return replaceTemplateVars(featuresTemplate, { ...data, items: featuresHtml });
     }
     
-    case 'text_block':
+    case 'text_block': {
+      const textBlockTemplate = getTemplate(template, 'text-block.html');
       return replaceTemplateVars(textBlockTemplate, {
         title: data.title || data.heading,
         content: data.content || data.text
       });
+    }
     
-    case 'call_to_action':
+    case 'call_to_action': {
+      const callToActionTemplate = getTemplate(template, 'call-to-action.html');
       return replaceTemplateVars(callToActionTemplate, mapCtaData(data));
+    }
     
     case 'team_members': {
+      const teamMembersTemplate = getTemplate(template, 'team-members.html');
+      const teamMemberItemTemplate = getTemplate(template, 'team-member-item.html');
       const members = data.members as Record<string, unknown>[] || [];
       const membersHtml = members.map(member => 
         replaceTemplateVars(teamMemberItemTemplate, {
@@ -162,7 +224,7 @@ function generateSection(section: SiteSection): string {
           bio: member.bio || member.description
         })
       ).join('');
-      return teamMembersTemplate.replace('{{members}}', membersHtml);
+      return replaceTemplateVars(teamMembersTemplate, { ...data, members: membersHtml });
     }
     
     default:
