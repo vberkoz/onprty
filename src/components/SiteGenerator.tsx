@@ -19,6 +19,12 @@ const SiteGenerator: React.FC<SiteGeneratorProps> = ({
   onTemplateChange,
   onGenerate
 }) => {
+  const examples = [
+    'A website for a startup that delivers custom weekly meal kits based on rare, forgotten recipes from ancient cultures.',
+    'A landing page for a new AI-powered legal document drafting service for small businesses.',
+    'A site showcasing a co-working space dedicated entirely to remote deep-sea researchers and marine biologists.'
+  ];
+
   return (
     <div className="generate-section">
       <h2>✨ Generate New Site</h2>
@@ -33,6 +39,19 @@ const SiteGenerator: React.FC<SiteGeneratorProps> = ({
             disabled={isGenerating}
           />
         </label>
+        <div className="example-prompts">
+          {examples.map((example, index) => (
+            <button
+              key={index}
+              type="button"
+              className="example-prompt-btn"
+              onClick={() => onPromptChange(example)}
+              disabled={isGenerating}
+            >
+              {example}
+            </button>
+          ))}
+        </div>
         <label>
           Template:
           <Dropdown

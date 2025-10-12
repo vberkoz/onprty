@@ -21,6 +21,7 @@ const ProjectPage: React.FC = () => {
   const [previewFile, setPreviewFile] = useState('index.html');
   const [confirmDialog, setConfirmDialog] = useState<{ isOpen: boolean; siteId: string; siteName: string }>({ isOpen: false, siteId: '', siteName: '' });
   const [sidebarVisible, setSidebarVisible] = useState(true);
+  const [activeTab, setActiveTab] = useState<'generate' | 'sites'>('generate');
   const { user, isAuthenticated, logout } = useAuth();
 
   const displayName = user?.given_name || user?.email || 'User';
@@ -68,12 +69,31 @@ const ProjectPage: React.FC = () => {
     try {
       const { siteData, siteFiles, schema } = await generateSite(prompt, selectedTemplate);
       
+      let siteName = siteData.siteMetadata.title;
+      let updatedSchema = schema;
+      
+      if (sites.some(s => s.name === siteName)) {
+        const timestamp = new Date().toLocaleString();
+        siteName = `${siteName} - ${timestamp}`;
+        updatedSchema = {
+          ...schema,
+          generatedData: {
+            ...schema.generatedData,
+            siteMetadata: {
+              ...schema.generatedData.siteMetadata,
+              title: siteName,
+              navTitle: siteName
+            }
+          }
+        };
+      }
+      
       const tempSite: StoredSite = {
         id: 'temp-' + Date.now(),
-        name: siteData.siteMetadata.title,
+        name: siteName,
         description: siteData.siteMetadata.description,
         files: siteFiles,
-        schema,
+        schema: updatedSchema,
         status: 'draft',
         createdAt: new Date(),
         updatedAt: new Date()
@@ -84,12 +104,13 @@ const ProjectPage: React.FC = () => {
       
       try {
         await saveSite({
-          name: siteData.siteMetadata.title,
+          name: siteName,
           description: siteData.siteMetadata.description,
-          schema,
+          schema: updatedSchema,
           status: 'draft'
         });
         await loadSites();
+        setActiveTab('sites');
       } catch (saveError) {
         console.error('Failed to save site:', saveError);
       }
@@ -176,29 +197,44 @@ const ProjectPage: React.FC = () => {
       <div className="split-view-container">
         {sidebarVisible && (
           <aside className="control-panel-aside">
-            <SiteGenerator
-              prompt={prompt}
-              selectedTemplate={selectedTemplate}
-              isGenerating={isGenerating}
-              onPromptChange={setPrompt}
-              onTemplateChange={setSelectedTemplate}
-              onGenerate={handleGenerate}
-            />
+            <div className="tabs">
+              <button 
+                className={`tab ${activeTab === 'generate' ? 'active' : ''}`}
+                onClick={() => setActiveTab('generate')}
+              >
+                Generate New Site
+              </button>
+              <button 
+                className={`tab ${activeTab === 'sites' ? 'active' : ''}`}
+                onClick={() => setActiveTab('sites')}
+              >
+                My Sites ({sites.length})
+              </button>
+            </div>
 
-            <hr className="divider" />
-
-            <SiteManager
-              sites={sites}
-              selectedSite={selectedSite}
-              previewFile={previewFile}
-              isLoading={isLoadingSites}
-              isPublishing={isPublishing}
-              onSiteSelect={setSelectedSite}
-              onFileSelect={setPreviewFile}
-              onDeleteSite={handleDeleteSite}
-              onPublishSite={handlePublishSite}
-              onUnpublishSite={handleUnpublishSite}
-            />
+            {activeTab === 'generate' ? (
+              <SiteGenerator
+                prompt={prompt}
+                selectedTemplate={selectedTemplate}
+                isGenerating={isGenerating}
+                onPromptChange={setPrompt}
+                onTemplateChange={setSelectedTemplate}
+                onGenerate={handleGenerate}
+              />
+            ) : (
+              <SiteManager
+                sites={sites}
+                selectedSite={selectedSite}
+                previewFile={previewFile}
+                isLoading={isLoadingSites}
+                isPublishing={isPublishing}
+                onSiteSelect={setSelectedSite}
+                onFileSelect={setPreviewFile}
+                onDeleteSite={handleDeleteSite}
+                onPublishSite={handlePublishSite}
+                onUnpublishSite={handleUnpublishSite}
+              />
+            )}
           </aside>
         )}
 

@@ -157,7 +157,6 @@ body {
 /* Generate Section */
 .generate-section {
   padding: 2rem;
-  border-bottom: 1px solid #e0e0e0;
 }
 
 .generate-section h2 {
@@ -194,6 +193,37 @@ body {
 .generation-form select {
   background-color: white;
   cursor: pointer;
+}
+
+.example-prompts {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+.example-prompt-btn {
+  padding: 0.75rem;
+  border: 1px solid #ddd;
+  border-radius: 4px;
+  background-color: #f8f9fa;
+  font-family: 'IBM Plex Mono', monospace;
+  font-size: 0.8rem;
+  text-align: left;
+  cursor: pointer;
+  transition: all 0.2s;
+  color: #666;
+  line-height: 1.4;
+}
+
+.example-prompt-btn:hover:not(:disabled) {
+  background-color: #e3f2fd;
+  border-color: #007bff;
+  color: #007bff;
+}
+
+.example-prompt-btn:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
 }
 
 /* Spinner */
@@ -287,7 +317,7 @@ body {
 }
 
 .my-sites-section h2 {
-  margin: 0 0 1rem 0;
+  margin: 0 0 1.5rem 0;
   font-size: 1.2rem;
   color: #333;
 }
@@ -573,6 +603,38 @@ body {
   margin: 0;
   border: none;
   border-top: 1px solid #e0e0e0;
+}
+
+/* Tabs */
+.tabs {
+  display: flex;
+  border-bottom: 1px solid #e0e0e0;
+  background-color: #fafafa;
+}
+
+.tab {
+  flex: 1;
+  padding: 1rem;
+  border: none;
+  background: none;
+  font-family: 'IBM Plex Mono', monospace;
+  font-size: 0.9rem;
+  font-weight: 500;
+  color: #666;
+  cursor: pointer;
+  transition: all 0.2s;
+  border-bottom: 2px solid transparent;
+}
+
+.tab:hover {
+  background-color: #f0f0f0;
+  color: #333;
+}
+
+.tab.active {
+  color: #007bff;
+  background-color: white;
+  border-bottom-color: #007bff;
 }
 
 /* Login Page */
