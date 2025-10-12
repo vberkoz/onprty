@@ -143,14 +143,15 @@ const ProjectPage: React.FC = () => {
 
   const confirmDelete = async () => {
     try {
-      await deleteSite(confirmDialog.siteId);
-      await loadSites();
       if (selectedSite?.id === confirmDialog.siteId) {
         setSelectedSite(null);
         setPreviewFile('index.html');
       }
+      await deleteSite(confirmDialog.siteId);
+      await loadSites();
     } catch (error) {
       console.error('Failed to delete site:', error);
+      alert('Failed to delete site. Please try again.');
     }
     setConfirmDialog({ isOpen: false, siteId: '', siteName: '' });
   };
