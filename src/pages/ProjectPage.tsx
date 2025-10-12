@@ -2,7 +2,7 @@
 
 import React, { useState, useEffect, useCallback } from "react";
 import { useAuth } from '../context/AuthContext';
-import { generateSite } from '../services/siteGenerator';
+import { generateSite, generateHTML } from '../services/siteGenerator';
 import { initDB, saveSite, getSites, getSite, deleteSite, publishSite, unpublishSite, type StoredSite } from '../services/siteStorageS3';
 import GlobalHeader from '../components/GlobalHeader';
 import SiteGenerator from '../components/SiteGenerator';
@@ -233,6 +233,13 @@ const ProjectPage: React.FC = () => {
                 onDeleteSite={handleDeleteSite}
                 onPublishSite={handlePublishSite}
                 onUnpublishSite={handleUnpublishSite}
+                onTemplateChange={(template) => {
+                  if (selectedSite?.schema?.generatedData) {
+                    const updatedSchema = { ...selectedSite.schema, template };
+                    const files = generateHTML(updatedSchema.generatedData as any, template);
+                    setSelectedSite({ ...selectedSite, schema: updatedSchema, files });
+                  }
+                }}
               />
             )}
           </aside>

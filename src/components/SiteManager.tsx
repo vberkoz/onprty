@@ -15,6 +15,7 @@ interface SiteManagerProps {
   onDeleteSite: (siteId: string, siteName: string) => void;
   onPublishSite: (siteId: string) => void;
   onUnpublishSite: (siteId: string) => void;
+  onTemplateChange: (template: string) => void;
 }
 
 const SiteManager: React.FC<SiteManagerProps> = ({
@@ -27,7 +28,8 @@ const SiteManager: React.FC<SiteManagerProps> = ({
   onFileSelect,
   onDeleteSite,
   onPublishSite,
-  onUnpublishSite
+  onUnpublishSite,
+  onTemplateChange
 }) => {
   const handleSiteSelect = async (siteName: string) => {
     const site = sites.find(s => s.name === siteName);
@@ -62,6 +64,14 @@ const SiteManager: React.FC<SiteManagerProps> = ({
           </label>
           {selectedSite && (
             <>
+              <label>
+                Template:
+                <Dropdown
+                  value={selectedSite.schema?.template === 'neubrutalism' ? 'Neubrutalism' : 'Monospace'}
+                  options={['Monospace', 'Neubrutalism']}
+                  onChange={(value) => onTemplateChange(value === 'Monospace' ? 'monospace' : 'neubrutalism')}
+                />
+              </label>
               <label>
                 File:
                 <Dropdown
