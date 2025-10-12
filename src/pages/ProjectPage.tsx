@@ -3,7 +3,7 @@
 import React, { useState, useEffect, useCallback } from "react";
 import { useAuth } from '../context/AuthContext';
 import { generateSite } from '../services/siteGenerator';
-import { initDB, saveSite, getSites, deleteSite, type StoredSite } from '../services/siteStorageS3';
+import { initDB, saveSite, getSites, deleteSite, publishSite, unpublishSite, type StoredSite } from '../services/siteStorageS3';
 import GlobalHeader from '../components/GlobalHeader';
 import SiteGenerator from '../components/SiteGenerator';
 import SiteManager from '../components/SiteManager';
@@ -14,7 +14,7 @@ const ProjectPage: React.FC = () => {
   const [sites, setSites] = useState<StoredSite[]>([]);
   const [selectedSite, setSelectedSite] = useState<StoredSite | null>(null);
   const [prompt, setPrompt] = useState('');
-  const [selectedTemplate, setSelectedTemplate] = useState('mono');
+  const [selectedTemplate, setSelectedTemplate] = useState('monospace');
   const [isGenerating, setIsGenerating] = useState(false);
   const [isLoadingSites, setIsLoadingSites] = useState(true);
   const [previewFile, setPreviewFile] = useState('index.html');
@@ -64,7 +64,6 @@ const ProjectPage: React.FC = () => {
     try {
       const { siteData, siteFiles } = await generateSite(prompt, selectedTemplate);
       
-      // Create temporary site object for immediate preview
       const tempSite: StoredSite = {
         id: 'temp-' + Date.now(),
         name: siteData.siteMetadata.title,
@@ -75,11 +74,9 @@ const ProjectPage: React.FC = () => {
         updatedAt: new Date()
       };
       
-      // Display immediately
       setSelectedSite(tempSite);
       setPreviewFile('index.html');
       
-      // Save to storage in background
       try {
         await saveSite({
           name: siteData.siteMetadata.title,
@@ -98,6 +95,34 @@ const ProjectPage: React.FC = () => {
       alert('Failed to generate site. Please try again.');
     } finally {
       setIsGenerating(false);
+    }
+  };
+
+  const handlePublishSite = async (siteId: string) => {
+    try {
+      const publishedUrl = await publishSite(siteId);
+      await loadSites();
+      const updatedSite = sites.find(s => s.id === siteId);
+      if (updatedSite) {
+        setSelectedSite({ ...updatedSite, status: 'published', publishedUrl });
+      }
+    } catch (error) {
+      console.error('Failed to publish site:', error);
+      alert('Failed to publish site. Please try again.');
+    }
+  };
+
+  const handleUnpublishSite = async (siteId: string) => {
+    try {
+      await unpublishSite(siteId);
+      await loadSites();
+      const updatedSite = sites.find(s => s.id === siteId);
+      if (updatedSite) {
+        setSelectedSite({ ...updatedSite, status: 'draft', publishedUrl: undefined });
+      }
+    } catch (error) {
+      console.error('Failed to unpublish site:', error);
+      alert('Failed to unpublish site. Please try again.');
     }
   };
 
@@ -158,6 +183,8 @@ const ProjectPage: React.FC = () => {
               onSiteSelect={setSelectedSite}
               onFileSelect={setPreviewFile}
               onDeleteSite={handleDeleteSite}
+              onPublishSite={handlePublishSite}
+              onUnpublishSite={handleUnpublishSite}
             />
           </aside>
         )}

@@ -12,6 +12,8 @@ interface SiteManagerProps {
   onSiteSelect: (site: StoredSite) => void;
   onFileSelect: (fileName: string) => void;
   onDeleteSite: (siteId: string, siteName: string) => void;
+  onPublishSite: (siteId: string) => void;
+  onUnpublishSite: (siteId: string) => void;
 }
 
 const SiteManager: React.FC<SiteManagerProps> = ({
@@ -21,7 +23,9 @@ const SiteManager: React.FC<SiteManagerProps> = ({
   isLoading,
   onSiteSelect,
   onFileSelect,
-  onDeleteSite
+  onDeleteSite,
+  onPublishSite,
+  onUnpublishSite
 }) => {
   return (
     <div className="my-sites-section">
@@ -54,7 +58,24 @@ const SiteManager: React.FC<SiteManagerProps> = ({
                   onChange={onFileSelect}
                 />
               </label>
+              {selectedSite.status === 'published' && selectedSite.publishedUrl && (
+                <div className="published-url">
+                  <label>Published URL:</label>
+                  <a href={selectedSite.publishedUrl} target="_blank" rel="noopener noreferrer" className="url-link">
+                    {selectedSite.publishedUrl}
+                  </a>
+                </div>
+              )}
               <div className="site-controls">
+                {selectedSite.status === 'published' ? (
+                  <Button onClick={() => onUnpublishSite(selectedSite.id)} size="small" variant="secondary">
+                    Unpublish
+                  </Button>
+                ) : (
+                  <Button onClick={() => onPublishSite(selectedSite.id)} size="small">
+                    Publish
+                  </Button>
+                )}
                 <Button onClick={() => downloadSiteAsZip(selectedSite)} size="small">
                   Download
                 </Button>

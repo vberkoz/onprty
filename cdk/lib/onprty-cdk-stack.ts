@@ -20,8 +20,8 @@ export class OnprtyCdkStack extends cdk.Stack {
     
     const domain = `${props.subdomain}.${props.domainName}`;
     const COGNITO_REDIRECT_URI = `https://${domain}/auth-callback`;
-    const GOOGLE_CLIENT_ID = process.env.GOOGLE_CLIENT_ID as string; // Sourced from environment
-    const GOOGLE_CLIENT_SECRET = process.env.GOOGLE_CLIENT_SECRET as string; // Sourced from environment
+    const GOOGLE_CLIENT_ID = process.env.GOOGLE_CLIENT_ID as string;
+    const GOOGLE_CLIENT_SECRET = process.env.GOOGLE_CLIENT_SECRET as string;
 
     if (!GOOGLE_CLIENT_ID || !GOOGLE_CLIENT_SECRET) {
       throw new Error("Missing environment variables: GOOGLE_CLIENT_ID and/or GOOGLE_CLIENT_SECRET must be set.");
@@ -134,6 +134,12 @@ export class OnprtyCdkStack extends cdk.Stack {
       validation: cdk.aws_certificatemanager.CertificateValidation.fromDns(hostedZone),
     });
 
+    const publicSitesCert = 
+    new cdk.aws_certificatemanager.Certificate(this, 'OnprtyPublicSitesCertificate', {
+      domainName: `sites.${domain}`,
+      validation: cdk.aws_certificatemanager.CertificateValidation.fromDns(hostedZone),
+    });
+
     const userPoolDomain =
     userPool.addDomain('OnprtyUserPoolDomain', {
       customDomain: {
@@ -173,15 +179,67 @@ export class OnprtyCdkStack extends cdk.Stack {
       preventUserExistenceErrors: true,
     });
 
-    // Ensure the client depends on the Google provider
     userPoolClient.node.addDependency(googleProvider);
 
-    // S3 Bucket for generated sites
+    // S3 Bucket for generated sites (private)
     const sitesBucket = new cdk.aws_s3.Bucket(this, 'OnprtySitesBucket', {
       bucketName: `onprty-sites-${this.account}-${this.region}`,
       removalPolicy: cdk.RemovalPolicy.DESTROY,
       blockPublicAccess: cdk.aws_s3.BlockPublicAccess.BLOCK_ALL,
       autoDeleteObjects: true,
+    });
+
+    // S3 Bucket for published sites (public)
+    const publicSitesBucket = new cdk.aws_s3.Bucket(this, 'OnprtyPublicSitesBucket', {
+      bucketName: `onprty-public-sites-${this.account}-${this.region}`,
+      removalPolicy: cdk.RemovalPolicy.DESTROY,
+      autoDeleteObjects: true,
+      publicReadAccess: true,
+      blockPublicAccess: new cdk.aws_s3.BlockPublicAccess({
+        blockPublicAcls: false,
+        blockPublicPolicy: false,
+        ignorePublicAcls: false,
+        restrictPublicBuckets: false,
+      }),
+      websiteIndexDocument: 'index.html',
+    });
+
+    // CloudFront function for public sites
+    const publicSitesCfFunction = new cdk.aws_cloudfront.Function(this, 'OnprtyPublicSitesIndexHtmlFunction', {
+      code: cdk.aws_cloudfront.FunctionCode.fromInline(`
+        function handler(event) {
+          var request = event.request;
+          var uri = request.uri;
+
+          if (uri.endsWith("/")) {
+            request.uri += "index.html";
+          } else if (!uri.includes(".")) {
+            request.uri += "/index.html";
+          }
+
+          return request;
+        }
+      `),
+    });
+
+    // CloudFront distribution for public sites
+    const publicSitesDistribution = new cdk.aws_cloudfront.Distribution(this, 'OnprtyPublicSitesDistribution', {
+      defaultBehavior: {
+        origin: new cdk.aws_cloudfront_origins.S3StaticWebsiteOrigin(publicSitesBucket),
+        viewerProtocolPolicy: cdk.aws_cloudfront.ViewerProtocolPolicy.REDIRECT_TO_HTTPS,
+        functionAssociations: [{
+          function: publicSitesCfFunction,
+          eventType: cdk.aws_cloudfront.FunctionEventType.VIEWER_REQUEST,
+        }],
+      },
+      domainNames: [`sites.${domain}`],
+      certificate: publicSitesCert,
+    });
+
+    new cdk.aws_route53.ARecord(this, 'OnprtyPublicSitesAliasRecord', {
+      zone: hostedZone,
+      recordName: `sites.${domain}`,
+      target: cdk.aws_route53.RecordTarget.fromAlias(new cdk.aws_route53_targets.CloudFrontTarget(publicSitesDistribution)),
     });
 
     // Site Generator API Lambda
@@ -193,12 +251,13 @@ export class OnprtyCdkStack extends cdk.Stack {
       environment: {
         NODE_ENV: 'production',
         SITES_BUCKET_NAME: sitesBucket.bucketName,
+        PUBLIC_SITES_BUCKET_NAME: publicSitesBucket.bucketName,
+        PUBLIC_DOMAIN: `sites.${domain}`,
         COGNITO_USER_POOL_ID: userPool.userPoolId,
         COGNITO_CLIENT_ID: userPoolClient.userPoolClientId,
       },
     });
 
-    // Grant Bedrock permissions to Lambda
     apiLambda.addToRolePolicy(
       new cdk.aws_iam.PolicyStatement({
         effect: cdk.aws_iam.Effect.ALLOW,
@@ -210,8 +269,8 @@ export class OnprtyCdkStack extends cdk.Stack {
       })
     );
 
-    // Grant S3 permissions to Lambda
     sitesBucket.grantReadWrite(apiLambda);
+    publicSitesBucket.grantReadWrite(apiLambda);
 
     // API Gateway
     const api = new cdk.aws_apigatewayv2.HttpApi(this, 'OnprtyApi', {
@@ -224,13 +283,11 @@ export class OnprtyCdkStack extends cdk.Stack {
       },
     });
 
-    // Lambda integration
     const lambdaIntegration = new cdk.aws_apigatewayv2_integrations.HttpLambdaIntegration(
       'OnprtyLambdaIntegration',
       apiLambda
     );
 
-    // API routes
     api.addRoutes({
       path: '/generate',
       methods: [cdk.aws_apigatewayv2.HttpMethod.POST],
@@ -249,37 +306,26 @@ export class OnprtyCdkStack extends cdk.Stack {
       integration: lambdaIntegration,
     });
 
-    // Rate limiting
+    api.addRoutes({
+      path: '/sites/{id}/publish',
+      methods: [cdk.aws_apigatewayv2.HttpMethod.POST],
+      integration: lambdaIntegration,
+    });
+
+    api.addRoutes({
+      path: '/sites/{id}/unpublish',
+      methods: [cdk.aws_apigatewayv2.HttpMethod.POST],
+      integration: lambdaIntegration,
+    });
+
     new cdk.aws_apigatewayv2.CfnStage(this, 'OnprtyApiRateLimitedStage', {
       apiId: api.apiId,
       stageName: '$default',
       autoDeploy: true,
       defaultRouteSettings: {
-        throttlingBurstLimit: 5,   // max 5 concurrent requests
-        throttlingRateLimit: 10,   // 10 requests per second
+        throttlingBurstLimit: 5,
+        throttlingRateLimit: 10,
       },
-    });
-
-    // CloudFront OAI for sites
-    const sitesOai = new cdk.aws_cloudfront.OriginAccessIdentity(this, 'OnprtySitesOAI');
-    sitesBucket.grantRead(sitesOai);
-
-    // CloudFront distribution for generated sites
-    const sitesDistribution = new cdk.aws_cloudfront.Distribution(this, 'OnprtySitesDistribution', {
-      defaultBehavior: {
-        origin: cdk.aws_cloudfront_origins.S3BucketOrigin.withOriginAccessIdentity(sitesBucket, {
-          originAccessIdentity: sitesOai,
-        }),
-        viewerProtocolPolicy: cdk.aws_cloudfront.ViewerProtocolPolicy.REDIRECT_TO_HTTPS,
-      },
-      errorResponses: [
-        {
-          httpStatus: 404,
-          responseHttpStatus: 200,
-          responsePagePath: '/index.html',
-          ttl: cdk.Duration.minutes(5)
-        }
-      ],
     });
 
     new cdk.CfnOutput(this, 'OnprtyAppDomain', { value: `https://${domain}` });
@@ -296,9 +342,9 @@ export class OnprtyCdkStack extends cdk.Stack {
       value: sitesBucket.bucketName,
       description: 'S3 Bucket for hosting generated sites',
     });
-    new cdk.CfnOutput(this, 'OnprtySitesDistributionDomain', {
-      value: sitesDistribution.distributionDomainName,
-      description: 'CloudFront distribution domain for generated sites',
+    new cdk.CfnOutput(this, 'OnprtyPublicSitesDomain', {
+      value: `https://${publicSitesDistribution.distributionDomainName}`,
+      description: 'CloudFront domain for published sites',
     });
   }
 }

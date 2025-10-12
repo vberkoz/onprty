@@ -31,54 +31,54 @@ export interface SiteFiles {
 import systemPromptText from './system-prompt.txt?raw';
 
 // Mono template imports
-import monoBase from './templates/mono/base.html?raw';
-import monoStyles from './templates/mono/styles.css?raw';
-import monoScript from './templates/mono/script.js?raw';
-import monoHero from './templates/mono/hero.html?raw';
-import monoFeatures from './templates/mono/features.html?raw';
-import monoFeaturesItem from './templates/mono/features-item.html?raw';
-import monoTextBlock from './templates/mono/text-block.html?raw';
-import monoCallToAction from './templates/mono/call-to-action.html?raw';
-import monoTeamMembers from './templates/mono/team-members.html?raw';
-import monoTeamMemberItem from './templates/mono/team-member-item.html?raw';
+import monospaceBase from './templates/monospace/base.html?raw';
+import monospaceStyles from './templates/monospace/styles.css?raw';
+import monospaceScript from './templates/monospace/script.js?raw';
+import monospaceHero from './templates/monospace/hero.html?raw';
+import monospaceFeatures from './templates/monospace/features.html?raw';
+import monospaceFeaturesItem from './templates/monospace/features-item.html?raw';
+import monospaceTextBlock from './templates/monospace/text-block.html?raw';
+import monospaceCallToAction from './templates/monospace/call-to-action.html?raw';
+import monospaceTeamMembers from './templates/monospace/team-members.html?raw';
+import monospaceTeamMemberItem from './templates/monospace/team-member-item.html?raw';
 
 // Modern template imports
-import modernBase from './templates/modern/base.html?raw';
-import modernStyles from './templates/modern/styles.css?raw';
-import modernScript from './templates/modern/script.js?raw';
-import modernHero from './templates/modern/hero.html?raw';
-import modernFeatures from './templates/modern/features.html?raw';
-import modernFeaturesItem from './templates/modern/features-item.html?raw';
-import modernTextBlock from './templates/modern/text-block.html?raw';
-import modernCallToAction from './templates/modern/call-to-action.html?raw';
-import modernTeamMembers from './templates/modern/team-members.html?raw';
-import modernTeamMemberItem from './templates/modern/team-member-item.html?raw';
+import neubrutalismBase from './templates/neubrutalism/base.html?raw';
+import neubrutalismStyles from './templates/neubrutalism/styles.css?raw';
+import neubrutalismScript from './templates/neubrutalism/script.js?raw';
+import neubrutalismHero from './templates/neubrutalism/hero.html?raw';
+import neubrutalismFeatures from './templates/neubrutalism/features.html?raw';
+import neubrutalismFeaturesItem from './templates/neubrutalism/features-item.html?raw';
+import neubrutalismTextBlock from './templates/neubrutalism/text-block.html?raw';
+import neubrutalismCallToAction from './templates/neubrutalism/call-to-action.html?raw';
+import neubrutalismTeamMembers from './templates/neubrutalism/team-members.html?raw';
+import neubrutalismTeamMemberItem from './templates/neubrutalism/team-member-item.html?raw';
 
 // Template registry
 const templates: { [templateName: string]: { [fileName: string]: string } } = {
-  mono: {
-    'base.html': monoBase,
-    'styles.css': monoStyles,
-    'script.js': monoScript,
-    'hero.html': monoHero,
-    'features.html': monoFeatures,
-    'features-item.html': monoFeaturesItem,
-    'text-block.html': monoTextBlock,
-    'call-to-action.html': monoCallToAction,
-    'team-members.html': monoTeamMembers,
-    'team-member-item.html': monoTeamMemberItem,
+  monospace: {
+    'base.html': monospaceBase,
+    'styles.css': monospaceStyles,
+    'script.js': monospaceScript,
+    'hero.html': monospaceHero,
+    'features.html': monospaceFeatures,
+    'features-item.html': monospaceFeaturesItem,
+    'text-block.html': monospaceTextBlock,
+    'call-to-action.html': monospaceCallToAction,
+    'team-members.html': monospaceTeamMembers,
+    'team-member-item.html': monospaceTeamMemberItem,
   },
-  modern: {
-    'base.html': modernBase,
-    'styles.css': modernStyles,
-    'script.js': modernScript,
-    'hero.html': modernHero,
-    'features.html': modernFeatures,
-    'features-item.html': modernFeaturesItem,
-    'text-block.html': modernTextBlock,
-    'call-to-action.html': modernCallToAction,
-    'team-members.html': modernTeamMembers,
-    'team-member-item.html': modernTeamMemberItem,
+  neubrutalism: {
+    'base.html': neubrutalismBase,
+    'styles.css': neubrutalismStyles,
+    'script.js': neubrutalismScript,
+    'hero.html': neubrutalismHero,
+    'features.html': neubrutalismFeatures,
+    'features-item.html': neubrutalismFeaturesItem,
+    'text-block.html': neubrutalismTextBlock,
+    'call-to-action.html': neubrutalismCallToAction,
+    'team-members.html': neubrutalismTeamMembers,
+    'team-member-item.html': neubrutalismTeamMemberItem,
   },
 };
 
@@ -88,7 +88,7 @@ function getTemplate(templateName: string, fileName: string): string {
 
 const API_URL = import.meta.env.VITE_API_URL || 'https://ln31vyuhij.execute-api.us-east-1.amazonaws.com';
 
-export async function generateSite(prompt: string, template: string = 'mono'): Promise<{ siteData: SiteData; siteFiles: SiteFiles }> {
+export async function generateSite(prompt: string, template: string = 'monospace'): Promise<{ siteData: SiteData; siteFiles: SiteFiles }> {
   const response = await fetch(`${API_URL}/generate`, {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
@@ -116,7 +116,7 @@ export async function generateSite(prompt: string, template: string = 'mono'): P
   return { siteData, siteFiles };
 }
 
-function generateHTML(siteData: SiteData, template: string = 'mono'): SiteFiles {
+function generateHTML(siteData: SiteData, template: string = 'monospace'): SiteFiles {
   const siteFiles: SiteFiles = {};
   
   // Generate navigation
@@ -176,7 +176,7 @@ const mapCtaData = (data: Record<string, unknown>) => {
   };
 };
 
-function generateSection(section: SiteSection, template: string = 'mono'): string {
+function generateSection(section: SiteSection, template: string = 'monospace'): string {
   const { type, data } = section;
   
   switch (type) {

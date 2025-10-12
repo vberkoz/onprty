@@ -12,7 +12,7 @@ const SitePreview: React.FC<SitePreviewProps> = ({
   previewFile,
   onFileNavigate
 }) => {
-  if (!selectedSite || !selectedSite.files[previewFile]) {
+  if (!selectedSite || !selectedSite.files || !selectedSite.files[previewFile]) {
     return <div className="no-preview"><p>Select a site to view preview</p></div>;
   }
 

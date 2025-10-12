@@ -6,8 +6,8 @@ export interface StoredSite {
   files: { [fileName: string]: string };
   createdAt: Date;
   updatedAt: Date;
-  status: 'draft' | 'live' | 'error';
-  url?: string;
+  status: 'draft' | 'published' | 'error';
+  publishedUrl?: string;
 }
 
 const API_BASE_URL = import.meta.env.VITE_API_URL;
@@ -54,7 +54,7 @@ export async function saveSite(site: Omit<StoredSite, 'id' | 'createdAt' | 'upda
 export async function getSites(): Promise<StoredSite[]> {
   const accessToken = getAccessToken();
   if (!accessToken) {
-    return []; // Return empty array instead of throwing error
+    return [];
   }
 
   const response = await fetch(`${API_BASE_URL}/sites`, {
@@ -141,6 +141,45 @@ export async function deleteSite(id: string): Promise<void> {
   }
 }
 
+export async function publishSite(id: string): Promise<string> {
+  const accessToken = getAccessToken();
+  if (!accessToken) {
+    throw new Error('No access token available');
+  }
+
+  const response = await fetch(`${API_BASE_URL}/sites/${id}/publish`, {
+    method: 'POST',
+    headers: {
+      'Authorization': `Bearer ${accessToken}`,
+    },
+  });
+
+  if (!response.ok) {
+    throw new Error('Failed to publish site');
+  }
+
+  const { publishedUrl } = await response.json();
+  return publishedUrl;
+}
+
+export async function unpublishSite(id: string): Promise<void> {
+  const accessToken = getAccessToken();
+  if (!accessToken) {
+    throw new Error('No access token available');
+  }
+
+  const response = await fetch(`${API_BASE_URL}/sites/${id}/unpublish`, {
+    method: 'POST',
+    headers: {
+      'Authorization': `Bearer ${accessToken}`,
+    },
+  });
+
+  if (!response.ok) {
+    throw new Error('Failed to unpublish site');
+  }
+}
+
 export async function downloadSiteAsZip(site: StoredSite): Promise<void> {
   const JSZip = (await import('jszip')).default;
   const zip = new JSZip();
@@ -160,7 +199,6 @@ export async function downloadSiteAsZip(site: StoredSite): Promise<void> {
   URL.revokeObjectURL(url);
 }
 
-// No initialization needed for S3-based storage
 export async function initDB(): Promise<void> {
   // No-op for S3 storage
 }

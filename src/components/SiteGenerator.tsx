@@ -36,9 +36,9 @@ const SiteGenerator: React.FC<SiteGeneratorProps> = ({
         <label>
           Template:
           <Dropdown
-            value={selectedTemplate === 'mono' ? 'Mono (Minimalist)' : 'Modern (Neo-Brutalist)'}
-            options={['Mono (Minimalist)', 'Modern (Neo-Brutalist)']}
-            onChange={(value) => onTemplateChange(value === 'Mono (Minimalist)' ? 'mono' : 'modern')}
+            value={selectedTemplate === 'monospace' ? 'Monospace' : 'Neubrutalism'}
+            options={['Monospace', 'Neubrutalism']}
+            onChange={(value) => onTemplateChange(value === 'Monospace' ? 'monospace' : 'neubrutalism')}
             disabled={isGenerating}
           />
         </label>
