@@ -58,14 +58,6 @@ main {
   gap: 4rem;
 }
 
-nav a:first-child {
-  font-weight: 600;
-}
-
-nav a:not(:first-child) {
-  margin-left: var(--gap-base);
-}
-
 .features-grid, .team-grid {
   display: flex;
   justify-content: space-between;
