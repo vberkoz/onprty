@@ -1,5 +1,6 @@
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
-import { getSites, getSite, saveSite, updateSite, deleteSite, publishSite, unpublishSite, type StoredSite } from '../services/siteStorageS3';
+import { getSites, getSite, saveSite, updateSite, deleteSite, publishSite, unpublishSite } from '../services/api/siteStorageS3';
+import type { StoredSite } from '../types';
 
 export const useSites = () => {
   return useQuery({
