@@ -27,7 +27,6 @@ const SiteGenerator: React.FC<SiteGeneratorProps> = ({
 
   return (
     <div className="generate-section">
-      <h2>✨ Generate New Site</h2>
       <form className="generation-form" onSubmit={onGenerate}>
         <label>
           Describe your website:

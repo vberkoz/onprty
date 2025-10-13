@@ -1,9 +1,10 @@
 // src/pages/ProjectPage.tsx
 
-import React, { useState, useEffect, useCallback } from "react";
+import React, { useState, useEffect } from "react";
 import { useAuth } from '../context/AuthContext';
-import { generateSite, generateHTML } from '../services/siteGenerator';
-import { initDB, saveSite, getSites, getSite, deleteSite, publishSite, unpublishSite, type StoredSite } from '../services/siteStorageS3';
+import { generateSite, generateHTML, type SiteData } from '../services/siteGenerator';
+import { initDB, type StoredSite } from '../services/siteStorageS3';
+import { useSites, useSite, useSaveSite, useUpdateSite, useDeleteSite, usePublishSite, useUnpublishSite } from '../hooks/useSites';
 import GlobalHeader from '../components/GlobalHeader';
 import SiteGenerator from '../components/SiteGenerator';
 import SiteManager from '../components/SiteManager';
@@ -11,55 +12,44 @@ import SitePreview from '../components/SitePreview';
 import ConfirmDialog from '../components/ConfirmDialog';
 
 const ProjectPage: React.FC = () => {
-  const [sites, setSites] = useState<StoredSite[]>([]);
+  const [selectedSiteId, setSelectedSiteId] = useState<string | null>(null);
   const [selectedSite, setSelectedSite] = useState<StoredSite | null>(null);
+  const [originalTemplate, setOriginalTemplate] = useState<string | undefined>(undefined);
   const [prompt, setPrompt] = useState('');
   const [selectedTemplate, setSelectedTemplate] = useState('monospace');
   const [isGenerating, setIsGenerating] = useState(false);
-  const [isLoadingSites, setIsLoadingSites] = useState(true);
-  const [isPublishing, setIsPublishing] = useState(false);
   const [previewFile, setPreviewFile] = useState('index.html');
   const [confirmDialog, setConfirmDialog] = useState<{ isOpen: boolean; siteId: string; siteName: string }>({ isOpen: false, siteId: '', siteName: '' });
   const [sidebarVisible, setSidebarVisible] = useState(true);
   const [activeTab, setActiveTab] = useState<'generate' | 'sites'>('generate');
   const { user, isAuthenticated, logout } = useAuth();
 
+  const { data: sites = [], isLoading: isLoadingSites } = useSites();
+  const { data: fullSite } = useSite(selectedSiteId);
+  const saveSiteMutation = useSaveSite();
+  const updateSiteMutation = useUpdateSite();
+  const deleteSiteMutation = useDeleteSite();
+  const publishSiteMutation = usePublishSite();
+  const unpublishSiteMutation = useUnpublishSite();
+
   const displayName = user?.given_name || user?.email || 'User';
 
-  const loadSites = useCallback(async () => {
-    if (!isAuthenticated) {
-      setSites([]);
-      setIsLoadingSites(false);
-      return;
-    }
-    
-    setIsLoadingSites(true);
-    try {
-      const loadedSites = await getSites();
-      setSites(loadedSites);
-      if (loadedSites.length > 0 && !selectedSite) {
-        const firstSite = await getSite(loadedSites[0].id);
-        if (firstSite) {
-          setSelectedSite(firstSite);
-        }
-      }
-    } catch (error) {
-      console.error('Failed to load sites:', error);
-      if (error instanceof Error && error.message.includes('authorization')) {
-        logout();
-      }
-    } finally {
-      setIsLoadingSites(false);
-    }
-  }, [isAuthenticated, selectedSite, logout]);
+  useEffect(() => {
+    initDB();
+  }, []);
 
   useEffect(() => {
-    const init = async () => {
-      await initDB();
-      await loadSites();
-    };
-    init();
-  }, [isAuthenticated, loadSites]);
+    if (fullSite) {
+      setSelectedSite(fullSite);
+    }
+  }, [fullSite]);
+
+  useEffect(() => {
+    if (sites.length > 0 && !selectedSiteId) {
+      const lastSite = sites[sites.length - 1];
+      setSelectedSiteId(lastSite.id);
+    }
+  }, [sites, selectedSiteId]);
 
   const handleGenerate = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -102,19 +92,14 @@ const ProjectPage: React.FC = () => {
       setSelectedSite(tempSite);
       setPreviewFile('index.html');
       
-      try {
-        await saveSite({
-          name: siteName,
-          description: siteData.siteMetadata.description,
-          schema: updatedSchema,
-          status: 'draft'
-        });
-        await loadSites();
-        setActiveTab('sites');
-      } catch (saveError) {
-        console.error('Failed to save site:', saveError);
-      }
-      
+      const savedId = await saveSiteMutation.mutateAsync({
+        name: siteName,
+        description: siteData.siteMetadata.description,
+        schema: updatedSchema,
+        status: 'draft'
+      });
+      setSelectedSiteId(savedId);
+      setActiveTab('sites');
       setPrompt('');
     } catch (error) {
       console.error('Failed to generate site:', error);
@@ -125,36 +110,44 @@ const ProjectPage: React.FC = () => {
   };
 
   const handlePublishSite = async (siteId: string) => {
-    setIsPublishing(true);
     try {
       if (!selectedSite?.files) {
         alert('No files to publish');
         return;
       }
-      const publishedUrl = await publishSite(siteId, selectedSite.files);
+      const publishedUrl = await publishSiteMutation.mutateAsync({ id: siteId, files: selectedSite.files });
       setSelectedSite({ ...selectedSite, status: 'published', publishedUrl });
-      await loadSites();
     } catch (error) {
       console.error('Failed to publish site:', error);
       alert('Failed to publish site. Please try again.');
-    } finally {
-      setIsPublishing(false);
     }
   };
 
   const handleUnpublishSite = async (siteId: string) => {
-    setIsPublishing(true);
     try {
-      await unpublishSite(siteId);
+      await unpublishSiteMutation.mutateAsync(siteId);
       if (selectedSite) {
         setSelectedSite({ ...selectedSite, status: 'draft', publishedUrl: undefined });
       }
-      await loadSites();
     } catch (error) {
       console.error('Failed to unpublish site:', error);
       alert('Failed to unpublish site. Please try again.');
-    } finally {
-      setIsPublishing(false);
+    }
+  };
+
+  const handleUpdateSite = async (siteId: string) => {
+    try {
+      if (!selectedSite?.schema || !selectedSite?.files) {
+        alert('No changes to update');
+        return;
+      }
+      await updateSiteMutation.mutateAsync({ id: siteId, updates: { schema: selectedSite.schema } });
+      const publishedUrl = await publishSiteMutation.mutateAsync({ id: siteId, files: selectedSite.files });
+      setSelectedSite({ ...selectedSite, publishedUrl });
+      setOriginalTemplate(selectedSite.schema.template);
+    } catch (error) {
+      console.error('Failed to update site:', error);
+      alert('Failed to update site. Please try again.');
     }
   };
 
@@ -166,10 +159,10 @@ const ProjectPage: React.FC = () => {
     try {
       if (selectedSite?.id === confirmDialog.siteId) {
         setSelectedSite(null);
+        setSelectedSiteId(null);
         setPreviewFile('index.html');
       }
-      await deleteSite(confirmDialog.siteId);
-      await loadSites();
+      await deleteSiteMutation.mutateAsync(confirmDialog.siteId);
     } catch (error) {
       console.error('Failed to delete site:', error);
       alert('Failed to delete site. Please try again.');
@@ -227,16 +220,22 @@ const ProjectPage: React.FC = () => {
                 selectedSite={selectedSite}
                 previewFile={previewFile}
                 isLoading={isLoadingSites}
-                isPublishing={isPublishing}
-                onSiteSelect={setSelectedSite}
+                isPublishing={publishSiteMutation.isPending || unpublishSiteMutation.isPending}
+                templateChanged={selectedSite?.status === 'published' && originalTemplate !== undefined && selectedSite?.schema?.template !== originalTemplate}
+                onSiteSelect={(site) => {
+                  setSelectedSiteId(site.id);
+                  setSelectedSite(site);
+                  setOriginalTemplate(site.schema?.template);
+                }}
                 onFileSelect={setPreviewFile}
                 onDeleteSite={handleDeleteSite}
                 onPublishSite={handlePublishSite}
                 onUnpublishSite={handleUnpublishSite}
+                onUpdateSite={handleUpdateSite}
                 onTemplateChange={(template) => {
                   if (selectedSite?.schema?.generatedData) {
                     const updatedSchema = { ...selectedSite.schema, template };
-                    const files = generateHTML(updatedSchema.generatedData as any, template);
+                    const files = generateHTML(updatedSchema.generatedData as SiteData, template);
                     setSelectedSite({ ...selectedSite, schema: updatedSchema, files });
                   }
                 }}

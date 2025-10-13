@@ -1,5 +1,5 @@
 import React from 'react';
-import { type StoredSite, downloadSiteAsZip, getSite } from '../services/siteStorageS3';
+import { type StoredSite, downloadSiteAsZip } from '../services/siteStorageS3';
 import Dropdown from './Dropdown';
 import Button from './Button';
 import Spinner from './Spinner';
@@ -10,11 +10,13 @@ interface SiteManagerProps {
   previewFile: string;
   isLoading: boolean;
   isPublishing: boolean;
+  templateChanged: boolean;
   onSiteSelect: (site: StoredSite) => void;
   onFileSelect: (fileName: string) => void;
   onDeleteSite: (siteId: string, siteName: string) => void;
   onPublishSite: (siteId: string) => void;
   onUnpublishSite: (siteId: string) => void;
+  onUpdateSite: (siteId: string) => void;
   onTemplateChange: (template: string) => void;
 }
 
@@ -24,29 +26,23 @@ const SiteManager: React.FC<SiteManagerProps> = ({
   previewFile,
   isLoading,
   isPublishing,
+  templateChanged,
   onSiteSelect,
   onFileSelect,
   onDeleteSite,
   onPublishSite,
   onUnpublishSite,
+  onUpdateSite,
   onTemplateChange
 }) => {
-  const handleSiteSelect = async (siteName: string) => {
+  const handleSiteSelect = (siteName: string) => {
     const site = sites.find(s => s.name === siteName);
     if (site) {
-      try {
-        const fullSite = await getSite(site.id);
-        if (fullSite) {
-          onSiteSelect(fullSite);
-        }
-      } catch (error) {
-        console.error('Failed to load site:', error);
-      }
+      onSiteSelect(site);
     }
   };
   return (
     <div className="my-sites-section">
-      <h2>📂 My Sites ({sites.length})</h2>
       {isLoading ? (
         <div className="loading-sites">
           <Spinner />
@@ -90,9 +86,16 @@ const SiteManager: React.FC<SiteManagerProps> = ({
               )}
               <div className="site-controls">
                 {selectedSite.status === 'published' ? (
-                  <Button onClick={() => onUnpublishSite(selectedSite.id)} size="small" variant="secondary" loading={isPublishing}>
-                    Unpublish
-                  </Button>
+                  <>
+                    {templateChanged && (
+                      <Button onClick={() => onUpdateSite(selectedSite.id)} size="small" loading={isPublishing}>
+                        Update
+                      </Button>
+                    )}
+                    <Button onClick={() => onUnpublishSite(selectedSite.id)} size="small" variant="secondary" loading={isPublishing}>
+                      Unpublish
+                    </Button>
+                  </>
                 ) : (
                   <Button onClick={() => onPublishSite(selectedSite.id)} size="small" loading={isPublishing}>
                     Publish
