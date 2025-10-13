@@ -11,7 +11,7 @@ import './index.css';
 // Components & Pages
 import LoginPage from './pages/LoginPage';
 import AuthCallback from './pages/AuthCallback';
-import AppLayout from './components/AppLayout';
+import AppLayout from './components/layout/AppLayout';
 import ProtectedRoute from './components/ProtectedRoute'; 
 import ProjectPage from './pages/ProjectPage';
 

@@ -1,25 +1,7 @@
-// src/context/AuthContext.tsx
-
 import React, { createContext, useContext, useState, useEffect, useCallback } from 'react';
 import { useNavigate } from 'react-router';
-
-const COGNITO_DOMAIN = import.meta.env.VITE_COGNITO_DOMAIN;
-const USER_POOL_CLIENT_ID = import.meta.env.VITE_COGNITO_CLIENT_ID;
-const REDIRECT_URI = import.meta.env.VITE_COGNITO_REDIRECT_URI;
-const LOGOUT_URI = import.meta.env.VITE_COGNITO_LOGOUT_URI;
-
-interface AuthTokens {
-  idToken: string;
-  accessToken: string;
-  expiresAt: number;
-}
-
-export interface User {
-  email?: string;
-  given_name?: string;
-  family_name?: string;
-  [key: string]: string | number | boolean | undefined;
-}
+import type { AuthTokens, User } from '../types';
+import { COGNITO_DOMAIN, COGNITO_CLIENT_ID, COGNITO_REDIRECT_URI, COGNITO_LOGOUT_URI, STORAGE_KEYS } from '../constants';
 
 interface AuthContextType {
   user: User | null;
@@ -33,7 +15,7 @@ const AuthContext = createContext<AuthContextType | undefined>(undefined);
 
 // --- JWT HELPER FUNCTION ---
 // Utility to decode the base64 part of a JWT (without validation for simplicity here)
-const decodeJwt = (token: string): { email: string; name?: string; 'cognito:username'?: string } => {
+const decodeJwt = (token: string): { email: string; name?: string; given_name?: string; family_name?: string; 'cognito:username'?: string } => {
   try {
     const base64Url = token.split('.')[1];
     const base64 = base64Url.replace(/-/g, '+').replace(/_/g, '/');
@@ -59,15 +41,19 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
 
   // Load tokens from storage on mount
   useEffect(() => {
-    const storedTokens = localStorage.getItem('cognitoTokens');
+    const storedTokens = localStorage.getItem(STORAGE_KEYS.COGNITO_TOKENS);
     if (storedTokens) {
       const parsedTokens: AuthTokens = JSON.parse(storedTokens);
       if (parsedTokens.expiresAt > Date.now()) {
         setTokens(parsedTokens);
         const payload = decodeJwt(parsedTokens.idToken);
-        setUser({ email: payload.email, name: payload.name || payload['cognito:username'] || '' });
+        setUser({ 
+          email: payload.email, 
+          given_name: payload.given_name || payload.name || payload['cognito:username'] || '',
+          family_name: payload.family_name
+        });
       } else {
-        localStorage.removeItem('cognitoTokens'); // Token expired
+        localStorage.removeItem(STORAGE_KEYS.COGNITO_TOKENS); // Token expired
       }
     }
   }, []);
@@ -80,9 +66,9 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     // We use 'token' (Implicit Grant) as requested for minimal setup without a backend
     const authUrl = `${COGNITO_DOMAIN}/oauth2/authorize?` +
       `response_type=token&` + 
-      `client_id=${USER_POOL_CLIENT_ID}&` +
+      `client_id=${COGNITO_CLIENT_ID}&` +
       `scope=openid%20email%20profile&` +
-      `redirect_uri=${REDIRECT_URI}` +
+      `redirect_uri=${COGNITO_REDIRECT_URI}` +
       providerParam;
       
     window.location.assign(authUrl);
@@ -99,11 +85,15 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       const expiresAt = Date.now() + (parseInt(expiresIn) * 1000);
       const newTokens: AuthTokens = { idToken, accessToken, expiresAt };
       
-      localStorage.setItem('cognitoTokens', JSON.stringify(newTokens));
+      localStorage.setItem(STORAGE_KEYS.COGNITO_TOKENS, JSON.stringify(newTokens));
       setTokens(newTokens);
       
       const payload = decodeJwt(idToken);
-      setUser({ email: payload.email, name: payload.name || payload['cognito:username'] || '' });
+      setUser({ 
+        email: payload.email, 
+        given_name: payload.given_name || payload.name || payload['cognito:username'] || '',
+        family_name: payload.family_name
+      });
       
       navigate('/'); // Redirect to the main app screen
     } else {
@@ -116,12 +106,12 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   const logout = useCallback(() => {
     setTokens(null);
     setUser(null);
-    localStorage.removeItem('cognitoTokens');
+    localStorage.removeItem(STORAGE_KEYS.COGNITO_TOKENS);
     
     // Redirect to Cognito's logout endpoint to clear the session there
     const logoutUrl = `${COGNITO_DOMAIN}/logout?` +
-      `client_id=${USER_POOL_CLIENT_ID}&` +
-      `logout_uri=${LOGOUT_URI}`;
+      `client_id=${COGNITO_CLIENT_ID}&` +
+      `logout_uri=${COGNITO_LOGOUT_URI}`;
       
     window.location.assign(logoutUrl);
   }, []);
