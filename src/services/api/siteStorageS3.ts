@@ -1,42 +1,8 @@
-export interface SiteSchema {
-  userPrompt: string;
-  generatedData: {
-    siteMetadata: {
-      title: string;
-      navTitle: string;
-      description: string;
-      author: string;
-    };
-    pages: Array<{
-      path: string;
-      fileName: string;
-      navLabel: string;
-      pageTitle: string;
-      sections: Array<{
-        type: string;
-        data: Record<string, unknown>;
-      }>;
-    }>;
-  };
-  template?: string;
-}
-
-export interface StoredSite {
-  id: string;
-  name: string;
-  description: string;
-  schema?: SiteSchema;
-  files?: { [fileName: string]: string };
-  createdAt: Date;
-  updatedAt: Date;
-  status: 'draft' | 'published' | 'error';
-  publishedUrl?: string;
-}
-
-const API_BASE_URL = import.meta.env.VITE_API_URL;
+import type { StoredSite } from '../../types';
+import { API_BASE_URL, STORAGE_KEYS } from '../../constants';
 
 function getAccessToken(): string | null {
-  const storedTokens = localStorage.getItem('cognitoTokens');
+  const storedTokens = localStorage.getItem(STORAGE_KEYS.COGNITO_TOKENS);
   if (storedTokens && storedTokens !== 'null') {
     try {
       const tokens = JSON.parse(storedTokens);
@@ -45,7 +11,7 @@ function getAccessToken(): string | null {
       }
     } catch (error) {
       console.error('Failed to parse stored tokens:', error);
-      localStorage.removeItem('cognitoTokens');
+      localStorage.removeItem(STORAGE_KEYS.COGNITO_TOKENS);
     }
   }
   return null;

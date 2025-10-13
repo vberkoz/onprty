@@ -1,64 +1,30 @@
-// Site generation service
-export interface SiteMetadata {
-  title: string;
-  navTitle: string;
-  description: string;
-  author: string;
-}
-
-export interface SiteSection {
-  type: 'hero' | 'features' | 'text_block' | 'call_to_action' | 'team_members';
-  data: Record<string, unknown>;
-}
-
-export interface SitePage {
-  path: string;
-  fileName: string;
-  navLabel: string;
-  pageTitle: string;
-  sections: SiteSection[];
-}
-
-export interface SiteData {
-  siteMetadata: SiteMetadata;
-  pages: SitePage[];
-}
-
-export interface SiteFiles {
-  [fileName: string]: string;
-}
-
-export interface SiteSchema {
-  userPrompt: string;
-  generatedData: SiteData;
-  template: string;
-}
-
+import type { SiteData, SiteFiles, SiteSchema, SiteSection } from '../../types';
+import { API_BASE_URL, DEFAULT_TEMPLATE, DEFAULT_ICONS, DEFAULT_PLACEHOLDER_IMAGE, DEFAULT_CTA_TEXT } from '../../constants';
 import systemPromptText from './system-prompt.txt?raw';
 
 // Mono template imports
-import monospaceBase from './templates/monospace/base.html?raw';
-import monospaceStyles from './templates/monospace/styles.css?raw';
-import monospaceScript from './templates/monospace/script.js?raw';
-import monospaceHero from './templates/monospace/hero.html?raw';
-import monospaceFeatures from './templates/monospace/features.html?raw';
-import monospaceFeaturesItem from './templates/monospace/features-item.html?raw';
-import monospaceTextBlock from './templates/monospace/text-block.html?raw';
-import monospaceCallToAction from './templates/monospace/call-to-action.html?raw';
-import monospaceTeamMembers from './templates/monospace/team-members.html?raw';
-import monospaceTeamMemberItem from './templates/monospace/team-member-item.html?raw';
+import monospaceBase from '../templates/monospace/base.html?raw';
+import monospaceStyles from '../templates/monospace/styles.css?raw';
+import monospaceScript from '../templates/monospace/script.js?raw';
+import monospaceHero from '../templates/monospace/hero.html?raw';
+import monospaceFeatures from '../templates/monospace/features.html?raw';
+import monospaceFeaturesItem from '../templates/monospace/features-item.html?raw';
+import monospaceTextBlock from '../templates/monospace/text-block.html?raw';
+import monospaceCallToAction from '../templates/monospace/call-to-action.html?raw';
+import monospaceTeamMembers from '../templates/monospace/team-members.html?raw';
+import monospaceTeamMemberItem from '../templates/monospace/team-member-item.html?raw';
 
 // Modern template imports
-import neubrutalismBase from './templates/neubrutalism/base.html?raw';
-import neubrutalismStyles from './templates/neubrutalism/styles.css?raw';
-import neubrutalismScript from './templates/neubrutalism/script.js?raw';
-import neubrutalismHero from './templates/neubrutalism/hero.html?raw';
-import neubrutalismFeatures from './templates/neubrutalism/features.html?raw';
-import neubrutalismFeaturesItem from './templates/neubrutalism/features-item.html?raw';
-import neubrutalismTextBlock from './templates/neubrutalism/text-block.html?raw';
-import neubrutalismCallToAction from './templates/neubrutalism/call-to-action.html?raw';
-import neubrutalismTeamMembers from './templates/neubrutalism/team-members.html?raw';
-import neubrutalismTeamMemberItem from './templates/neubrutalism/team-member-item.html?raw';
+import neubrutalismBase from '../templates/neubrutalism/base.html?raw';
+import neubrutalismStyles from '../templates/neubrutalism/styles.css?raw';
+import neubrutalismScript from '../templates/neubrutalism/script.js?raw';
+import neubrutalismHero from '../templates/neubrutalism/hero.html?raw';
+import neubrutalismFeatures from '../templates/neubrutalism/features.html?raw';
+import neubrutalismFeaturesItem from '../templates/neubrutalism/features-item.html?raw';
+import neubrutalismTextBlock from '../templates/neubrutalism/text-block.html?raw';
+import neubrutalismCallToAction from '../templates/neubrutalism/call-to-action.html?raw';
+import neubrutalismTeamMembers from '../templates/neubrutalism/team-members.html?raw';
+import neubrutalismTeamMemberItem from '../templates/neubrutalism/team-member-item.html?raw';
 
 // Template registry
 const templates: { [templateName: string]: { [fileName: string]: string } } = {
@@ -92,10 +58,8 @@ function getTemplate(templateName: string, fileName: string): string {
   return templates[templateName]?.[fileName] || '';
 }
 
-const API_URL = import.meta.env.VITE_API_URL || 'https://ln31vyuhij.execute-api.us-east-1.amazonaws.com';
-
-export async function generateSite(prompt: string, template: string = 'monospace'): Promise<{ siteData: SiteData; siteFiles: SiteFiles; schema: SiteSchema }> {
-  const response = await fetch(`${API_URL}/generate`, {
+export async function generateSite(prompt: string, template: string = DEFAULT_TEMPLATE): Promise<{ siteData: SiteData; siteFiles: SiteFiles; schema: SiteSchema }> {
+  const response = await fetch(`${API_BASE_URL}/generate`, {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify({
@@ -121,7 +85,7 @@ export async function generateSite(prompt: string, template: string = 'monospace
   return { siteData, siteFiles, schema };
 }
 
-export function generateHTML(siteData: SiteData, template: string = 'monospace'): SiteFiles {
+export function generateHTML(siteData: SiteData, template: string = DEFAULT_TEMPLATE): SiteFiles {
   const siteFiles: SiteFiles = {};
   
   // Generate navigation
@@ -165,8 +129,6 @@ export function generateHTML(siteData: SiteData, template: string = 'monospace')
   return siteFiles;
 }
 
-const DEFAULT_ICONS = ['⚡', '🎨', '📱', '🚀', '💡', '🔧', '📊', '🎯', '🌟', '💎'];
-
 const mapCtaData = (data: Record<string, unknown>) => {
   let ctaLink = data.ctaLink || '#';
   // Convert absolute paths to relative for iframe navigation
@@ -176,12 +138,12 @@ const mapCtaData = (data: Record<string, unknown>) => {
   return {
     heading: data.heading,
     subheading: data.subheading || data.description,
-    ctaText: data.ctaText || data.buttonText || 'Learn More',
+    ctaText: data.ctaText || data.buttonText || DEFAULT_CTA_TEXT,
     ctaLink
   };
 };
 
-function generateSection(section: SiteSection, template: string = 'monospace'): string {
+function generateSection(section: SiteSection, template: string = DEFAULT_TEMPLATE): string {
   const { type, data } = section;
   
   switch (type) {
@@ -223,7 +185,7 @@ function generateSection(section: SiteSection, template: string = 'monospace'): 
       const members = data.members as Record<string, unknown>[] || [];
       const membersHtml = members.map(member => 
         replaceTemplateVars(teamMemberItemTemplate, {
-          image: member.image || 'https://via.placeholder.com/150',
+          image: member.image || DEFAULT_PLACEHOLDER_IMAGE,
           name: member.name,
           role: member.role,
           bio: member.bio || member.description
