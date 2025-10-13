@@ -1,6 +1,6 @@
 import React from 'react';
-import Dropdown from './Dropdown';
-import Button from './Button';
+import Dropdown from '../ui/Dropdown';
+import Button from '../ui/Button';
 
 interface SiteGeneratorProps {
   prompt: string;
@@ -28,16 +28,6 @@ const SiteGenerator: React.FC<SiteGeneratorProps> = ({
   return (
     <div className="generate-section">
       <form className="generation-form" onSubmit={onGenerate}>
-        <label>
-          Describe your website:
-          <textarea 
-            value={prompt}
-            onChange={(e) => onPromptChange(e.target.value)}
-            placeholder="e.g., A modern landing page for a tech startup with hero section, features, and team"
-            rows={3}
-            disabled={isGenerating}
-          />
-        </label>
         <div className="example-prompts">
           {examples.map((example, index) => (
             <button
@@ -51,6 +41,16 @@ const SiteGenerator: React.FC<SiteGeneratorProps> = ({
             </button>
           ))}
         </div>
+        <label>
+          Describe your website:
+          <textarea 
+            value={prompt}
+            onChange={(e) => onPromptChange(e.target.value)}
+            placeholder="e.g., A modern landing page for a tech startup with hero section, features, and team"
+            rows={3}
+            disabled={isGenerating}
+          />
+        </label>
         <label>
           Template:
           <Dropdown
