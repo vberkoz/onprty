@@ -2,26 +2,29 @@
 
 import React, { useState, useEffect } from "react";
 import { useAuth } from '../context/AuthContext';
-import { generateSite, generateHTML, type SiteData } from '../services/siteGenerator';
-import { initDB, type StoredSite } from '../services/siteStorageS3';
+import { generateSite, generateHTML } from '../services/api/siteGenerator';
+import { initDB } from '../services/api/siteStorageS3';
+import type { SiteData, StoredSite } from '../types';
 import { useSites, useSite, useSaveSite, useUpdateSite, useDeleteSite, usePublishSite, useUnpublishSite } from '../hooks/useSites';
-import GlobalHeader from '../components/GlobalHeader';
-import SiteGenerator from '../components/SiteGenerator';
-import SiteManager from '../components/SiteManager';
-import SitePreview from '../components/SitePreview';
-import ConfirmDialog from '../components/ConfirmDialog';
+import GlobalHeader from '../components/layout/GlobalHeader';
+import SiteGenerator from '../components/site/SiteGenerator';
+import SiteManager from '../components/site/SiteManager';
+import SitePreview from '../components/site/SitePreview';
+import ConfirmDialog from '../components/ui/ConfirmDialog';
+import SiteEditor from '../components/site/SiteEditor';
 
 const ProjectPage: React.FC = () => {
   const [selectedSiteId, setSelectedSiteId] = useState<string | null>(null);
   const [selectedSite, setSelectedSite] = useState<StoredSite | null>(null);
   const [originalTemplate, setOriginalTemplate] = useState<string | undefined>(undefined);
+  const [originalSchema, setOriginalSchema] = useState<string | undefined>(undefined);
   const [prompt, setPrompt] = useState('');
   const [selectedTemplate, setSelectedTemplate] = useState('monospace');
   const [isGenerating, setIsGenerating] = useState(false);
   const [previewFile, setPreviewFile] = useState('index.html');
   const [confirmDialog, setConfirmDialog] = useState<{ isOpen: boolean; siteId: string; siteName: string }>({ isOpen: false, siteId: '', siteName: '' });
   const [sidebarVisible, setSidebarVisible] = useState(true);
-  const [activeTab, setActiveTab] = useState<'generate' | 'sites'>('generate');
+  const [activeTab, setActiveTab] = useState<'generate' | 'sites' | 'edit'>('generate');
   const { user, isAuthenticated, logout } = useAuth();
 
   const { data: sites = [], isLoading: isLoadingSites } = useSites();
@@ -45,11 +48,14 @@ const ProjectPage: React.FC = () => {
   }, [fullSite]);
 
   useEffect(() => {
-    if (sites.length > 0 && !selectedSiteId) {
+    if (sites.length > 0 && !selectedSiteId && !selectedSite) {
       const lastSite = sites[sites.length - 1];
       setSelectedSiteId(lastSite.id);
+    } else if (sites.length === 0) {
+      setSelectedSite(null);
+      setSelectedSiteId(null);
     }
-  }, [sites, selectedSiteId]);
+  }, [sites, selectedSiteId, selectedSite]);
 
   const handleGenerate = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -117,6 +123,8 @@ const ProjectPage: React.FC = () => {
       }
       const publishedUrl = await publishSiteMutation.mutateAsync({ id: siteId, files: selectedSite.files });
       setSelectedSite({ ...selectedSite, status: 'published', publishedUrl });
+      setOriginalTemplate(selectedSite.schema?.template);
+      setOriginalSchema(JSON.stringify(selectedSite.schema?.generatedData));
     } catch (error) {
       console.error('Failed to publish site:', error);
       alert('Failed to publish site. Please try again.');
@@ -142,12 +150,37 @@ const ProjectPage: React.FC = () => {
         return;
       }
       await updateSiteMutation.mutateAsync({ id: siteId, updates: { schema: selectedSite.schema } });
+      await unpublishSiteMutation.mutateAsync(siteId);
       const publishedUrl = await publishSiteMutation.mutateAsync({ id: siteId, files: selectedSite.files });
-      setSelectedSite({ ...selectedSite, publishedUrl });
+      setSelectedSite({ ...selectedSite, status: 'published', publishedUrl });
       setOriginalTemplate(selectedSite.schema.template);
+      setOriginalSchema(JSON.stringify(selectedSite.schema.generatedData));
     } catch (error) {
       console.error('Failed to update site:', error);
       alert('Failed to update site. Please try again.');
+    }
+  };
+
+  const handleSaveEdits = async (updatedData: SiteData) => {
+    try {
+      if (!selectedSite?.schema) return;
+      
+      const updatedSchema = {
+        ...selectedSite.schema,
+        generatedData: updatedData,
+        template: selectedSite.schema.template
+      };
+      
+      await updateSiteMutation.mutateAsync({ 
+        id: selectedSite.id, 
+        updates: { 
+          schema: updatedSchema,
+          name: updatedData.siteMetadata.title,
+          description: updatedData.siteMetadata.description
+        } 
+      });
+    } catch (error) {
+      console.error('Failed to save edits:', error);
     }
   };
 
@@ -156,13 +189,14 @@ const ProjectPage: React.FC = () => {
   };
 
   const confirmDelete = async () => {
+    const isCurrentSite = selectedSite?.id === confirmDialog.siteId;
     try {
-      if (selectedSite?.id === confirmDialog.siteId) {
+      await deleteSiteMutation.mutateAsync(confirmDialog.siteId);
+      if (isCurrentSite) {
         setSelectedSite(null);
         setSelectedSiteId(null);
         setPreviewFile('index.html');
       }
-      await deleteSiteMutation.mutateAsync(confirmDialog.siteId);
     } catch (error) {
       console.error('Failed to delete site:', error);
       alert('Failed to delete site. Please try again.');
@@ -203,9 +237,17 @@ const ProjectPage: React.FC = () => {
               >
                 My Sites ({sites.length})
               </button>
+              <button 
+                className={`tab ${activeTab === 'edit' ? 'active' : ''}`}
+                onClick={() => setActiveTab('edit')}
+                disabled={!selectedSite}
+              >
+                Edit Site
+              </button>
             </div>
 
-            {activeTab === 'generate' ? (
+            <div className="tab-content-wrapper">
+              {activeTab === 'generate' ? (
               <SiteGenerator
                 prompt={prompt}
                 selectedTemplate={selectedTemplate}
@@ -213,6 +255,17 @@ const ProjectPage: React.FC = () => {
                 onPromptChange={setPrompt}
                 onTemplateChange={setSelectedTemplate}
                 onGenerate={handleGenerate}
+              />
+            ) : activeTab === 'edit' ? (
+              <SiteEditor
+                selectedSite={selectedSite}
+                onSave={handleSaveEdits}
+                onPreview={(updatedData) => {
+                  if (selectedSite?.schema) {
+                    const files = generateHTML(updatedData, selectedSite.schema.template || 'monospace');
+                    setSelectedSite({ ...selectedSite, files });
+                  }
+                }}
               />
             ) : (
               <SiteManager
@@ -222,25 +275,37 @@ const ProjectPage: React.FC = () => {
                 isLoading={isLoadingSites}
                 isPublishing={publishSiteMutation.isPending || unpublishSiteMutation.isPending}
                 templateChanged={selectedSite?.status === 'published' && originalTemplate !== undefined && selectedSite?.schema?.template !== originalTemplate}
+                contentChanged={selectedSite?.status === 'published' && originalSchema !== undefined && JSON.stringify(selectedSite?.schema?.generatedData) !== originalSchema}
                 onSiteSelect={(site) => {
                   setSelectedSiteId(site.id);
                   setSelectedSite(site);
                   setOriginalTemplate(site.schema?.template);
+                  setOriginalSchema(JSON.stringify(site.schema?.generatedData));
                 }}
                 onFileSelect={setPreviewFile}
                 onDeleteSite={handleDeleteSite}
                 onPublishSite={handlePublishSite}
                 onUnpublishSite={handleUnpublishSite}
                 onUpdateSite={handleUpdateSite}
-                onTemplateChange={(template) => {
+                onTemplateChange={async (template) => {
                   if (selectedSite?.schema?.generatedData) {
                     const updatedSchema = { ...selectedSite.schema, template };
                     const files = generateHTML(updatedSchema.generatedData as SiteData, template);
                     setSelectedSite({ ...selectedSite, schema: updatedSchema, files });
+                    
+                    try {
+                      await updateSiteMutation.mutateAsync({ 
+                        id: selectedSite.id, 
+                        updates: { schema: updatedSchema } 
+                      });
+                    } catch (error) {
+                      console.error('Failed to save template change:', error);
+                    }
                   }
                 }}
               />
-            )}
+              )}
+            </div>
           </aside>
         )}
 
@@ -249,6 +314,7 @@ const ProjectPage: React.FC = () => {
             selectedSite={selectedSite}
             previewFile={previewFile}
             onFileNavigate={setPreviewFile}
+            isLoading={isLoadingSites && !selectedSite}
           />
         </section>
       </div>
