@@ -183,11 +183,16 @@ export class OnprtyCdkStack extends cdk.Stack {
 
     // DynamoDB table for site schemas
     const sitesTable = new cdk.aws_dynamodb.Table(this, 'OnprtySitesTable', {
-      tableName: 'onprty-sites',
-      partitionKey: { name: 'userId', type: cdk.aws_dynamodb.AttributeType.STRING },
-      sortKey: { name: 'siteId', type: cdk.aws_dynamodb.AttributeType.STRING },
+      partitionKey: { name: 'PK', type: cdk.aws_dynamodb.AttributeType.STRING },
+      sortKey: { name: 'SK', type: cdk.aws_dynamodb.AttributeType.STRING },
       billingMode: cdk.aws_dynamodb.BillingMode.PAY_PER_REQUEST,
       removalPolicy: cdk.RemovalPolicy.DESTROY,
+    });
+
+    sitesTable.addGlobalSecondaryIndex({
+      indexName: 'GSI1',
+      partitionKey: { name: 'GSI1PK', type: cdk.aws_dynamodb.AttributeType.STRING },
+      sortKey: { name: 'GSI1SK', type: cdk.aws_dynamodb.AttributeType.STRING },
     });
 
     // S3 Bucket for published sites (public)
@@ -317,13 +322,25 @@ export class OnprtyCdkStack extends cdk.Stack {
     });
 
     api.addRoutes({
-      path: '/sites/{id}/publish',
+      path: '/sites/publish',
       methods: [cdk.aws_apigatewayv2.HttpMethod.POST],
       integration: lambdaIntegration,
     });
 
     api.addRoutes({
-      path: '/sites/{id}/unpublish',
+      path: '/sites/unpublish',
+      methods: [cdk.aws_apigatewayv2.HttpMethod.POST],
+      integration: lambdaIntegration,
+    });
+
+    api.addRoutes({
+      path: '/users/register',
+      methods: [cdk.aws_apigatewayv2.HttpMethod.POST],
+      integration: lambdaIntegration,
+    });
+
+    api.addRoutes({
+      path: '/sites/check-slug',
       methods: [cdk.aws_apigatewayv2.HttpMethod.POST],
       integration: lambdaIntegration,
     });

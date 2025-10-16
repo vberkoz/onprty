@@ -58,6 +58,32 @@ function getTemplate(templateName: string, fileName: string): string {
   return templates[templateName]?.[fileName] || '';
 }
 
+async function ensureUniqueSlug(slug: string): Promise<string> {
+  try {
+    const tokens = localStorage.getItem('cognitoTokens');
+    if (!tokens) return slug;
+    
+    const { accessToken } = JSON.parse(tokens);
+    const response = await fetch(`${API_BASE_URL}/sites/check-slug`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': `Bearer ${accessToken}`,
+      },
+      body: JSON.stringify({ slug }),
+    });
+    
+    if (!response.ok) return slug;
+    
+    const { exists } = await response.json();
+    if (!exists) return slug;
+    
+    return `${slug}-${crypto.randomUUID().slice(0, 4)}`;
+  } catch {
+    return slug;
+  }
+}
+
 export async function generateSite(prompt: string, template: string = DEFAULT_TEMPLATE): Promise<{ siteData: SiteData; siteFiles: SiteFiles; schema: SiteSchema }> {
   const response = await fetch(`${API_BASE_URL}/generate`, {
     method: 'POST',
@@ -74,6 +100,9 @@ export async function generateSite(prompt: string, template: string = DEFAULT_TE
 
   const data = await response.json();
   const siteData: SiteData = JSON.parse(data.output);
+  
+  siteData.siteMetadata.slug = await ensureUniqueSlug(siteData.siteMetadata.slug);
+  
   const siteFiles = generateHTML(siteData, template);
   
   const schema = {

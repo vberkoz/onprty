@@ -51,10 +51,9 @@ export const useDeleteSite = () => {
 export const usePublishSite = () => {
   const queryClient = useQueryClient();
   return useMutation({
-    mutationFn: ({ id, files }: { id: string; files: { [fileName: string]: string } }) => publishSite(id, files),
-    onSuccess: (_, variables) => {
+    mutationFn: ({ slug, files }: { slug: string; files: { [fileName: string]: string } }) => publishSite(slug, files),
+    onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['sites'] });
-      queryClient.invalidateQueries({ queryKey: ['site', variables.id] });
     },
   });
 };
@@ -63,9 +62,8 @@ export const useUnpublishSite = () => {
   const queryClient = useQueryClient();
   return useMutation({
     mutationFn: unpublishSite,
-    onSuccess: (_, id) => {
+    onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['sites'] });
-      queryClient.invalidateQueries({ queryKey: ['site', id] });
     },
   });
 };

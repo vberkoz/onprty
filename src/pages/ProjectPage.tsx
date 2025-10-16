@@ -102,6 +102,7 @@ const ProjectPage: React.FC = () => {
         name: siteName,
         description: siteData.siteMetadata.description,
         schema: updatedSchema,
+        slug: siteData.siteMetadata.slug,
         status: 'draft'
       });
       setSelectedSiteId(savedId);
@@ -115,13 +116,13 @@ const ProjectPage: React.FC = () => {
     }
   };
 
-  const handlePublishSite = async (siteId: string) => {
+  const handlePublishSite = async () => {
     try {
-      if (!selectedSite?.files) {
-        alert('No files to publish');
+      if (!selectedSite?.files || !selectedSite?.slug) {
+        alert('No files or slug to publish');
         return;
       }
-      const publishedUrl = await publishSiteMutation.mutateAsync({ id: siteId, files: selectedSite.files });
+      const publishedUrl = await publishSiteMutation.mutateAsync({ slug: selectedSite.slug, files: selectedSite.files });
       setSelectedSite({ ...selectedSite, status: 'published', publishedUrl });
       setOriginalTemplate(selectedSite.schema?.template);
       setOriginalSchema(JSON.stringify(selectedSite.schema?.generatedData));
@@ -131,9 +132,13 @@ const ProjectPage: React.FC = () => {
     }
   };
 
-  const handleUnpublishSite = async (siteId: string) => {
+  const handleUnpublishSite = async () => {
     try {
-      await unpublishSiteMutation.mutateAsync(siteId);
+      if (!selectedSite?.slug) {
+        alert('No slug found');
+        return;
+      }
+      await unpublishSiteMutation.mutateAsync(selectedSite.slug);
       if (selectedSite) {
         setSelectedSite({ ...selectedSite, status: 'draft', publishedUrl: undefined });
       }
@@ -143,15 +148,15 @@ const ProjectPage: React.FC = () => {
     }
   };
 
-  const handleUpdateSite = async (siteId: string) => {
+  const handleUpdateSite = async () => {
     try {
-      if (!selectedSite?.schema || !selectedSite?.files) {
+      if (!selectedSite?.schema || !selectedSite?.files || !selectedSite?.slug || !selectedSite?.id) {
         alert('No changes to update');
         return;
       }
-      await updateSiteMutation.mutateAsync({ id: siteId, updates: { schema: selectedSite.schema } });
-      await unpublishSiteMutation.mutateAsync(siteId);
-      const publishedUrl = await publishSiteMutation.mutateAsync({ id: siteId, files: selectedSite.files });
+      await updateSiteMutation.mutateAsync({ id: selectedSite.id, updates: { schema: selectedSite.schema } });
+      await unpublishSiteMutation.mutateAsync(selectedSite.slug);
+      const publishedUrl = await publishSiteMutation.mutateAsync({ slug: selectedSite.slug, files: selectedSite.files });
       setSelectedSite({ ...selectedSite, status: 'published', publishedUrl });
       setOriginalTemplate(selectedSite.schema.template);
       setOriginalSchema(JSON.stringify(selectedSite.schema.generatedData));
@@ -176,7 +181,8 @@ const ProjectPage: React.FC = () => {
         updates: { 
           schema: updatedSchema,
           name: updatedData.siteMetadata.title,
-          description: updatedData.siteMetadata.description
+          description: updatedData.siteMetadata.description,
+          slug: updatedData.siteMetadata.slug
         } 
       });
     } catch (error) {

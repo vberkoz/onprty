@@ -15,7 +15,8 @@ Here is the JSON schema you must follow:
     "title": "string",
     "navTitle": "string",
     "description": "string",
-    "author": "string"
+    "author": "string",
+    "slug": "string (URL-friendly: lowercase, hyphens only, no special characters)"
   },
   "pages": [
     {

@@ -33,6 +33,7 @@ export async function saveSite(site: Omit<StoredSite, 'id' | 'createdAt' | 'upda
       name: site.name,
       description: site.description,
       schema: site.schema,
+      slug: site.slug,
     }),
   });
 
@@ -159,19 +160,19 @@ export async function deleteSite(id: string): Promise<void> {
   }
 }
 
-export async function publishSite(id: string, files: { [fileName: string]: string }): Promise<string> {
+export async function publishSite(slug: string, files: { [fileName: string]: string }): Promise<string> {
   const accessToken = getAccessToken();
   if (!accessToken) {
     throw new Error('No access token available');
   }
 
-  const response = await fetch(`${API_BASE_URL}/sites/${id}/publish`, {
+  const response = await fetch(`${API_BASE_URL}/sites/publish`, {
     method: 'POST',
     headers: {
       'Content-Type': 'application/json',
       'Authorization': `Bearer ${accessToken}`,
     },
-    body: JSON.stringify({ files }),
+    body: JSON.stringify({ slug, files }),
   });
 
   if (!response.ok) {
@@ -182,17 +183,19 @@ export async function publishSite(id: string, files: { [fileName: string]: strin
   return publishedUrl;
 }
 
-export async function unpublishSite(id: string): Promise<void> {
+export async function unpublishSite(slug: string): Promise<void> {
   const accessToken = getAccessToken();
   if (!accessToken) {
     throw new Error('No access token available');
   }
 
-  const response = await fetch(`${API_BASE_URL}/sites/${id}/unpublish`, {
+  const response = await fetch(`${API_BASE_URL}/sites/unpublish`, {
     method: 'POST',
     headers: {
+      'Content-Type': 'application/json',
       'Authorization': `Bearer ${accessToken}`,
     },
+    body: JSON.stringify({ slug }),
   });
 
   if (!response.ok) {

@@ -1,7 +1,7 @@
 import React, { createContext, useContext, useState, useEffect, useCallback } from 'react';
 import { useNavigate } from 'react-router';
 import type { AuthTokens, User } from '../types';
-import { COGNITO_DOMAIN, COGNITO_CLIENT_ID, COGNITO_REDIRECT_URI, COGNITO_LOGOUT_URI, STORAGE_KEYS } from '../constants';
+import { API_BASE_URL, COGNITO_DOMAIN, COGNITO_CLIENT_ID, COGNITO_REDIRECT_URI, COGNITO_LOGOUT_URI, STORAGE_KEYS } from '../constants';
 
 interface AuthContextType {
   user: User | null;
@@ -89,11 +89,30 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       setTokens(newTokens);
       
       const payload = decodeJwt(idToken);
-      setUser({ 
+      const userData = { 
         email: payload.email, 
         given_name: payload.given_name || payload.name || payload['cognito:username'] || '',
         family_name: payload.family_name
-      });
+      };
+      setUser(userData);
+      
+      // Register user on first login
+      fetch(`${API_BASE_URL}/users/register`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${accessToken}`,
+        },
+        body: JSON.stringify({
+          email: userData.email,
+          givenName: userData.given_name,
+          familyName: userData.family_name,
+        }),
+      }).then(res => {
+        if (res.status === 409) {
+          console.log('User already registered');
+        }
+      }).catch(err => console.error('User registration failed:', err));
       
       navigate('/'); // Redirect to the main app screen
     } else {

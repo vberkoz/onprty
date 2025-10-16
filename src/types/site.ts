@@ -3,6 +3,7 @@ export interface SiteMetadata {
   navTitle: string;
   description: string;
   author: string;
+  slug: string;
 }
 
 export interface SiteSection {
@@ -37,6 +38,7 @@ export interface StoredSite {
   id: string;
   name: string;
   description: string;
+  slug?: string;
   schema?: SiteSchema;
   files?: SiteFiles;
   createdAt: Date;
