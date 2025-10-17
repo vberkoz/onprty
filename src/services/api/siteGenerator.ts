@@ -26,6 +26,30 @@ import neubrutalismCallToAction from '../templates/neubrutalism/call-to-action.h
 import neubrutalismTeamMembers from '../templates/neubrutalism/team-members.html?raw';
 import neubrutalismTeamMemberItem from '../templates/neubrutalism/team-member-item.html?raw';
 
+// Swiss template imports
+import swissBase from '../templates/swiss/base.html?raw';
+import swissStyles from '../templates/swiss/styles.css?raw';
+import swissScript from '../templates/swiss/script.js?raw';
+import swissHero from '../templates/swiss/hero.html?raw';
+import swissFeatures from '../templates/swiss/features.html?raw';
+import swissFeaturesItem from '../templates/swiss/features-item.html?raw';
+import swissTextBlock from '../templates/swiss/text-block.html?raw';
+import swissCallToAction from '../templates/swiss/call-to-action.html?raw';
+import swissTeamMembers from '../templates/swiss/team-members.html?raw';
+import swissTeamMemberItem from '../templates/swiss/team-member-item.html?raw';
+
+// Terminal template imports
+import terminalBase from '../templates/terminal/base.html?raw';
+import terminalStyles from '../templates/terminal/styles.css?raw';
+import terminalScript from '../templates/terminal/script.js?raw';
+import terminalHero from '../templates/terminal/hero.html?raw';
+import terminalFeatures from '../templates/terminal/features.html?raw';
+import terminalFeaturesItem from '../templates/terminal/features-item.html?raw';
+import terminalTextBlock from '../templates/terminal/text-block.html?raw';
+import terminalCallToAction from '../templates/terminal/call-to-action.html?raw';
+import terminalTeamMembers from '../templates/terminal/team-members.html?raw';
+import terminalTeamMemberItem from '../templates/terminal/team-member-item.html?raw';
+
 // Template registry
 const templates: { [templateName: string]: { [fileName: string]: string } } = {
   monospace: {
@@ -51,6 +75,30 @@ const templates: { [templateName: string]: { [fileName: string]: string } } = {
     'call-to-action.html': neubrutalismCallToAction,
     'team-members.html': neubrutalismTeamMembers,
     'team-member-item.html': neubrutalismTeamMemberItem,
+  },
+  swiss: {
+    'base.html': swissBase,
+    'styles.css': swissStyles,
+    'script.js': swissScript,
+    'hero.html': swissHero,
+    'features.html': swissFeatures,
+    'features-item.html': swissFeaturesItem,
+    'text-block.html': swissTextBlock,
+    'call-to-action.html': swissCallToAction,
+    'team-members.html': swissTeamMembers,
+    'team-member-item.html': swissTeamMemberItem,
+  },
+  terminal: {
+    'base.html': terminalBase,
+    'styles.css': terminalStyles,
+    'script.js': terminalScript,
+    'hero.html': terminalHero,
+    'features.html': terminalFeatures,
+    'features-item.html': terminalFeaturesItem,
+    'text-block.html': terminalTextBlock,
+    'call-to-action.html': terminalCallToAction,
+    'team-members.html': terminalTeamMembers,
+    'team-member-item.html': terminalTeamMemberItem,
   },
 };
 

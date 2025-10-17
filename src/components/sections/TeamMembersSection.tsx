@@ -143,6 +143,35 @@ const TeamMembersSection: React.FC<TeamMembersSectionProps> = ({
                         onChange={(e) => onUpdateMember(idx, 'image', e.target.value)}
                       />
                     </label>
+                    <label>
+                      Upload Image:
+                      <input
+                        type="file"
+                        accept="image/*"
+                        onChange={(e) => {
+                          const file = e.target.files?.[0];
+                          if (file) {
+                            const reader = new FileReader();
+                            reader.onload = () => {
+                              const img = new Image();
+                              img.onload = () => {
+                                const canvas = document.createElement('canvas');
+                                const size = Math.min(img.width, img.height);
+                                const x = (img.width - size) / 2;
+                                const y = (img.height - size) / 2;
+                                canvas.width = 128;
+                                canvas.height = 128;
+                                const ctx = canvas.getContext('2d');
+                                ctx?.drawImage(img, x, y, size, size, 0, 0, 128, 128);
+                                onUpdateMember(idx, 'image', canvas.toDataURL('image/jpeg', 0.8));
+                              };
+                              img.src = reader.result as string;
+                            };
+                            reader.readAsDataURL(file);
+                          }
+                        }}
+                      />
+                    </label>
                   </div>
                 )}
               </div>

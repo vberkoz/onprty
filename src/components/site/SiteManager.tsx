@@ -66,9 +66,9 @@ const SiteManager: React.FC<SiteManagerProps> = ({
               <label>
                 Template:
                 <Dropdown
-                  value={selectedSite.schema?.template === 'neubrutalism' ? 'Neubrutalism' : 'Monospace'}
-                  options={['Monospace', 'Neubrutalism']}
-                  onChange={(value) => onTemplateChange(value === 'Monospace' ? 'monospace' : 'neubrutalism')}
+                  value={selectedSite.schema?.template === 'neubrutalism' ? 'Neubrutalism' : selectedSite.schema?.template === 'swiss' ? 'Swiss' : selectedSite.schema?.template === 'terminal' ? 'Terminal' : 'Monospace'}
+                  options={['Monospace', 'Neubrutalism', 'Swiss', 'Terminal']}
+                  onChange={(value) => onTemplateChange(value === 'Monospace' ? 'monospace' : value === 'Neubrutalism' ? 'neubrutalism' : value === 'Swiss' ? 'swiss' : 'terminal')}
                 />
               </label>
               <label>

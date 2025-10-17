@@ -1,0 +1,17 @@
+Create a website for TechStart Solutions, a software consulting company.
+
+Homepage should have:
+- Hero section with heading 'Transform Your Business with AI' and subheading 'Expert consulting services for modern enterprises' with a 'Get Started' button linking to /contact
+- Features section titled 'Our Services' with 4 items: AI Integration (🤖), Cloud Migration (☁️), Data Analytics (📊), and Custom Development (💻)
+- Text block titled 'About Us' explaining we're a team of 50+ engineers with 10 years experience
+- Call to action section with 'Ready to innovate?' and 'Schedule Consultation' button
+
+About page with:
+- Hero section 'Our Story'
+- Text block about company history founded in 2014
+- Team members section with 3 people: Sarah Chen (CEO, 15 years in tech), Mike Rodriguez (CTO, AI specialist), Lisa Park (Head of Design, UX expert)
+- Call to action 'Join Our Team'
+
+Contact page with:
+- Hero 'Get In Touch'
+- Text block with email mailto:info@techstart.com and phone 555-0123
