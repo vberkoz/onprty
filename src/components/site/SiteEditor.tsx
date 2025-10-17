@@ -8,6 +8,13 @@ import ProjectGridSection from '../sections/ProjectGridSection';
 import SkillsMatrixSection from '../sections/SkillsMatrixSection';
 import ExperienceTimelineSection from '../sections/ExperienceTimelineSection';
 import ContactFormSection from '../sections/ContactFormSection';
+import { TestimonialsSection } from '../sections/TestimonialsSection';
+import { PricingSection } from '../sections/PricingSection';
+import { LandingHeroSection } from '../sections/LandingHeroSection';
+import { ProblemSolutionSection } from '../sections/ProblemSolutionSection';
+import { StatsSection } from '../sections/StatsSection';
+import { FaqSection } from '../sections/FaqSection';
+import { FooterSection } from '../sections/FooterSection';
 
 interface SiteEditorProps {
   selectedSite: StoredSite | null;
@@ -65,7 +72,7 @@ const SiteEditor: React.FC<SiteEditorProps> = ({ selectedSite, onSave, onPreview
     const section = updatedPages[pageIndex].sections[sectionIndex];
     updatedPages[pageIndex].sections[sectionIndex] = {
       ...section,
-      data: { ...section.data, [field]: value }
+      data: field === '' ? value as Record<string, unknown> : { ...section.data, [field]: value }
     };
     const updated = { ...editedData, pages: updatedPages };
     setEditedData(updated);
@@ -321,7 +328,7 @@ const SiteEditor: React.FC<SiteEditorProps> = ({ selectedSite, onSave, onPreview
     debouncedSave(updated);
   };
 
-  const addSection = (pageIndex: number, type: 'hero' | 'features' | 'text_block' | 'call_to_action' | 'team_members' | 'project_grid' | 'skills_matrix' | 'experience_timeline' | 'contact_form') => {
+  const addSection = (pageIndex: number, type: 'hero' | 'landing_hero' | 'problem_solution' | 'features' | 'text_block' | 'call_to_action' | 'landing_cta' | 'team_members' | 'project_grid' | 'skills_matrix' | 'experience_timeline' | 'contact_form' | 'testimonials' | 'stats' | 'pricing' | 'faq' | 'footer') => {
     const updatedPages = [...editedData.pages];
     const newSection: SiteSection = {
       type,
@@ -330,7 +337,12 @@ const SiteEditor: React.FC<SiteEditorProps> = ({ selectedSite, onSave, onPreview
             type === 'project_grid' ? { projects: [] } : 
             type === 'skills_matrix' ? { categories: [] } : 
             type === 'experience_timeline' ? { experiences: [] } : 
-            type === 'contact_form' ? { socialLinks: [] } : {}
+            type === 'contact_form' ? { socialLinks: [] } : 
+            type === 'testimonials' ? { title: '', testimonials: [] } : 
+            type === 'stats' ? { stats: [] } : 
+            type === 'pricing' ? { title: '', plans: [] } : 
+            type === 'faq' ? { title: '', items: [] } : 
+            type === 'footer' ? { contactText: '', links: [], socialLinks: [] } : {}
     };
     updatedPages[pageIndex].sections.push(newSection);
     const updated = { ...editedData, pages: updatedPages };
@@ -433,7 +445,14 @@ const SiteEditor: React.FC<SiteEditorProps> = ({ selectedSite, onSave, onPreview
     switch (section.type) {
       case 'hero':
       case 'call_to_action':
+      case 'landing_cta':
         return <HeroSection key={sectionIndex} {...commonProps} />;
+
+      case 'landing_hero':
+        return <LandingHeroSection key={sectionIndex} {...commonProps} />;
+
+      case 'problem_solution':
+        return <ProblemSolutionSection key={sectionIndex} {...commonProps} />;
 
       case 'features':
         return (
@@ -503,6 +522,53 @@ const SiteEditor: React.FC<SiteEditorProps> = ({ selectedSite, onSave, onPreview
 
       case 'contact_form':
         return <ContactFormSection key={sectionIndex} {...commonProps} />;
+
+      case 'testimonials':
+        return (
+          <TestimonialsSection
+            key={sectionIndex}
+            {...commonProps}
+            expandedItems={expandedSections}
+            onToggleItem={toggleSection}
+            sectionKey={sectionKey}
+          />
+        );
+
+      case 'stats':
+        return (
+          <StatsSection
+            key={sectionIndex}
+            {...commonProps}
+            expandedItems={expandedSections}
+            onToggleItem={toggleSection}
+            sectionKey={sectionKey}
+          />
+        );
+
+      case 'faq':
+        return (
+          <FaqSection
+            key={sectionIndex}
+            {...commonProps}
+            expandedItems={expandedSections}
+            onToggleItem={toggleSection}
+            sectionKey={sectionKey}
+          />
+        );
+
+      case 'footer':
+        return <FooterSection key={sectionIndex} {...commonProps} />;
+
+      case 'pricing':
+        return (
+          <PricingSection
+            key={sectionIndex}
+            {...commonProps}
+            expandedItems={expandedSections}
+            onToggleItem={toggleSection}
+            sectionKey={sectionKey}
+          />
+        );
 
       default:
         return null;
@@ -592,14 +658,22 @@ const SiteEditor: React.FC<SiteEditorProps> = ({ selectedSite, onSave, onPreview
                 <h5 style={{ margin: '0 0 0.5rem 0', fontSize: '0.85rem' }}>Add Section:</h5>
                 <div style={{ display: 'flex', gap: '0.5rem', flexWrap: 'wrap' }}>
                   <button onClick={() => addSection(pageIndex, 'hero')} style={{ padding: '0.5rem', fontSize: '0.75rem', cursor: 'pointer', backgroundColor: '#007bff', color: 'white', border: 'none', borderRadius: '4px', fontFamily: 'IBM Plex Mono, monospace' }}>+ Hero</button>
+                  <button onClick={() => addSection(pageIndex, 'landing_hero')} style={{ padding: '0.5rem', fontSize: '0.75rem', cursor: 'pointer', backgroundColor: '#ffc107', color: 'black', border: 'none', borderRadius: '4px', fontFamily: 'IBM Plex Mono, monospace' }}>+ Landing Hero</button>
+                  <button onClick={() => addSection(pageIndex, 'problem_solution')} style={{ padding: '0.5rem', fontSize: '0.75rem', cursor: 'pointer', backgroundColor: '#ffc107', color: 'black', border: 'none', borderRadius: '4px', fontFamily: 'IBM Plex Mono, monospace' }}>+ Problem/Solution</button>
                   <button onClick={() => addSection(pageIndex, 'features')} style={{ padding: '0.5rem', fontSize: '0.75rem', cursor: 'pointer', backgroundColor: '#007bff', color: 'white', border: 'none', borderRadius: '4px', fontFamily: 'IBM Plex Mono, monospace' }}>+ Features</button>
                   <button onClick={() => addSection(pageIndex, 'text_block')} style={{ padding: '0.5rem', fontSize: '0.75rem', cursor: 'pointer', backgroundColor: '#007bff', color: 'white', border: 'none', borderRadius: '4px', fontFamily: 'IBM Plex Mono, monospace' }}>+ Text Block</button>
                   <button onClick={() => addSection(pageIndex, 'call_to_action')} style={{ padding: '0.5rem', fontSize: '0.75rem', cursor: 'pointer', backgroundColor: '#007bff', color: 'white', border: 'none', borderRadius: '4px', fontFamily: 'IBM Plex Mono, monospace' }}>+ CTA</button>
+                  <button onClick={() => addSection(pageIndex, 'landing_cta')} style={{ padding: '0.5rem', fontSize: '0.75rem', cursor: 'pointer', backgroundColor: '#ffc107', color: 'black', border: 'none', borderRadius: '4px', fontFamily: 'IBM Plex Mono, monospace' }}>+ Landing CTA</button>
                   <button onClick={() => addSection(pageIndex, 'team_members')} style={{ padding: '0.5rem', fontSize: '0.75rem', cursor: 'pointer', backgroundColor: '#007bff', color: 'white', border: 'none', borderRadius: '4px', fontFamily: 'IBM Plex Mono, monospace' }}>+ Team</button>
                   <button onClick={() => addSection(pageIndex, 'project_grid')} style={{ padding: '0.5rem', fontSize: '0.75rem', cursor: 'pointer', backgroundColor: '#28a745', color: 'white', border: 'none', borderRadius: '4px', fontFamily: 'IBM Plex Mono, monospace' }}>+ Projects</button>
                   <button onClick={() => addSection(pageIndex, 'skills_matrix')} style={{ padding: '0.5rem', fontSize: '0.75rem', cursor: 'pointer', backgroundColor: '#28a745', color: 'white', border: 'none', borderRadius: '4px', fontFamily: 'IBM Plex Mono, monospace' }}>+ Skills</button>
                   <button onClick={() => addSection(pageIndex, 'experience_timeline')} style={{ padding: '0.5rem', fontSize: '0.75rem', cursor: 'pointer', backgroundColor: '#28a745', color: 'white', border: 'none', borderRadius: '4px', fontFamily: 'IBM Plex Mono, monospace' }}>+ Experience</button>
                   <button onClick={() => addSection(pageIndex, 'contact_form')} style={{ padding: '0.5rem', fontSize: '0.75rem', cursor: 'pointer', backgroundColor: '#28a745', color: 'white', border: 'none', borderRadius: '4px', fontFamily: 'IBM Plex Mono, monospace' }}>+ Contact</button>
+                  <button onClick={() => addSection(pageIndex, 'testimonials')} style={{ padding: '0.5rem', fontSize: '0.75rem', cursor: 'pointer', backgroundColor: '#ffc107', color: 'black', border: 'none', borderRadius: '4px', fontFamily: 'IBM Plex Mono, monospace' }}>+ Testimonials</button>
+                  <button onClick={() => addSection(pageIndex, 'stats')} style={{ padding: '0.5rem', fontSize: '0.75rem', cursor: 'pointer', backgroundColor: '#ffc107', color: 'black', border: 'none', borderRadius: '4px', fontFamily: 'IBM Plex Mono, monospace' }}>+ Stats</button>
+                  <button onClick={() => addSection(pageIndex, 'pricing')} style={{ padding: '0.5rem', fontSize: '0.75rem', cursor: 'pointer', backgroundColor: '#ffc107', color: 'black', border: 'none', borderRadius: '4px', fontFamily: 'IBM Plex Mono, monospace' }}>+ Pricing</button>
+                  <button onClick={() => addSection(pageIndex, 'faq')} style={{ padding: '0.5rem', fontSize: '0.75rem', cursor: 'pointer', backgroundColor: '#ffc107', color: 'black', border: 'none', borderRadius: '4px', fontFamily: 'IBM Plex Mono, monospace' }}>+ FAQ</button>
+                  <button onClick={() => addSection(pageIndex, 'footer')} style={{ padding: '0.5rem', fontSize: '0.75rem', cursor: 'pointer', backgroundColor: '#6c757d', color: 'white', border: 'none', borderRadius: '4px', fontFamily: 'IBM Plex Mono, monospace' }}>+ Footer</button>
                 </div>
               </div>
             </div>

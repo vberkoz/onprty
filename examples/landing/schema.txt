@@ -1,0 +1,37 @@
+1. Hero Section (Above the Fold)
+    1.1. Clear, Benefit-Driven Headline
+    1.2. Subheadline/Supporting Text (Elaborates on the value)
+    1.3. Primary Visual (Product image, video, or relevant graphic)
+    1.4. Primary Call-to-Action (CTA) Button
+    1.5. Trust Signal/Mini Social Proof (e.g., "Used by 10k users," small rating)
+
+2. Problem/Solution Section
+    2.1. Statement of the Problem/Pain Point (Engages the visitor)
+    2.2. Introduction of the Solution (The core offering)
+
+3. Features/Benefits Section (The "How It Works")
+    3.1. List of 3-5 Core Benefits (Focus on outcome, not just features)
+    3.2. Detailed Feature Blocks (Short description and icon/visual for each)
+
+4. Social Proof/Credibility Section
+    4.1. Detailed Testimonials (2-3 compelling quotes, ideally with photo/name)
+    4.2. Logo Bar (Client logos, 'As Featured In' media mentions)
+    4.3. Data/Statistics Block (Metrics showing success or impact)
+
+5. Secondary Call-to-Action Section
+    5.1. Reinforcing Headline (Addresses objections or restates value)
+    5.2. Secondary CTA Button (Often the same action as Primary CTA)
+
+6. Pricing/Packages (If applicable)
+    6.1. Plan Tiers/Options (Basic, Pro, Enterprise)
+    6.2. Key Features Listed per Tier
+    6.3. Money-Back Guarantee/Risk Reversal Statement
+
+7. Final Summary/Objection Handling
+    7.1. FAQ Section (Addresses common last-minute questions/concerns)
+    7.2. Final Closing Statement
+
+8. Footer (Minimal)
+    8.1. Contact Email/Link
+    8.2. Social Media Icons (Minimal)
+    8.3. Privacy Policy & Terms of Service Links

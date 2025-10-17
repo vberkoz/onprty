@@ -1132,3 +1132,22 @@ body {
   border-color: #0056b3;
   color: #0056b3;
 }
+
+/* Checkbox Label */
+.checkbox-label {
+  flex-direction: row !important;
+  align-items: center;
+  gap: 0.5rem !important;
+  cursor: pointer;
+}
+
+.checkbox-label input[type="checkbox"] {
+  width: auto;
+  margin: 0;
+  cursor: pointer;
+}
+
+.checkbox-label span {
+  font-size: 0.75rem;
+  color: #555;
+}

@@ -7,7 +7,7 @@ export interface SiteMetadata {
 }
 
 export interface SiteSection {
-  type: 'hero' | 'features' | 'text_block' | 'call_to_action' | 'team_members' | 'project_grid' | 'skills_matrix' | 'experience_timeline' | 'contact_form';
+  type: 'hero' | 'landing_hero' | 'problem_solution' | 'features' | 'text_block' | 'call_to_action' | 'landing_cta' | 'team_members' | 'project_grid' | 'skills_matrix' | 'experience_timeline' | 'contact_form' | 'testimonials' | 'stats' | 'pricing' | 'faq' | 'footer';
   data: Record<string, unknown>;
 }
 

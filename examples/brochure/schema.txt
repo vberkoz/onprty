@@ -1,0 +1,38 @@
+1. Home/Landing Page
+    1.1. Hero Section (Business Name, Tagline, Primary Image, Call-to-Action)
+    1.2. Company Overview/Mission Statement (The "Why")
+    1.3. Key Services/Products Highlight (Top 3 features or offerings)
+    1.4. Trust Signals/Social Proof (Testimonial snippet or client logos)
+
+2. About Us
+    2.1. Detailed Company Story/History
+    2.2. Our Team/Leadership (Photos and short bios)
+    2.3. Core Values and Philosophy
+    2.4. Location/Facility Information (If physical location is relevant)
+
+3. Services/Products
+    3.1. Main Service/Product Index (List or grid of all offerings)
+    3.2. Individual Service/Product Page
+        3.2.1. Detailed Description and Benefits
+        3.2.2. Key Features and Specifications
+        3.2.3. Visuals/Gallery (Photos, diagrams, videos)
+        3.2.4. Next Step Call-to-Action (e.g., "Request a Quote," "Learn More")
+
+4. Portfolio/Case Studies (Optional, if visual proof is needed)
+    4.1. Selected Projects Index (Simple list with image thumbnails)
+    4.2. Short Case Study View (Challenge, Solution, Outcome)
+
+5. FAQ (Frequently Asked Questions)
+    5.1. Organized Question Categories (e.g., General, Pricing, Logistics)
+    5.2. Collapsible Q&A Pairs
+
+6. Contact
+    6.1. Contact Form (Name, Email, Subject, Message)
+    6.2. Contact Information (Phone Number, Primary Email Address)
+    6.3. Physical Address and Map (Embedded Google Map)
+    6.4. Business Hours and Availability
+    6.5. Social Media Links
+
+7. Legal/Utility
+    7.1. Privacy Policy
+    7.2. Terms and Conditions/Legal Disclaimer

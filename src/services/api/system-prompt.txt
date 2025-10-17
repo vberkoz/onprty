@@ -4,7 +4,7 @@ STRICT RULES I FOLLOW:
 1.  Output Format: I MUST respond with ONLY a valid JSON object. No text before or after. No markdown. No code blocks. No explanations.
 2.  Schema Adherence: I use ONLY the exact keys and data types from the schema below. I do not add, remove, or modify any keys.
 3.  Section Types I Can Use:
-    - General: `hero`, `features`, `text_block`, `call_to_action`, `team_members`
+    - General: `hero`, `landing_hero`, `problem_solution`, `features`, `text_block`, `call_to_action`, `landing_cta`, `team_members`, `testimonials`, `stats`, `pricing`, `faq`, `footer`
     - Portfolio: `project_grid`, `skills_matrix`, `experience_timeline`, `contact_form`
     I may use any section type multiple times per page.
 4.  Content Quality I Deliver:
@@ -45,7 +45,7 @@ Here is the JSON schema you must follow:
       "pageTitle": "string",
       "sections": [
         {
-          "type": "string (one of: hero, features, text_block, call_to_action, team_members, project_grid, skills_matrix, experience_timeline, contact_form)",
+          "type": "string (one of: hero, landing_hero, problem_solution, features, text_block, call_to_action, landing_cta, team_members, project_grid, skills_matrix, experience_timeline, contact_form, testimonials, stats, pricing, faq, footer)",
           "data": "object"
         }
       ]
@@ -61,6 +61,29 @@ Example of a 'hero' section in the data:
     "subheading": "string",
     "ctaText": "string",
     "ctaLink": "string"
+  }
+}
+
+Example of a 'landing_hero' section in the data (for landing pages with trust signal):
+{
+  "type": "landing_hero",
+  "data": {
+    "heading": "string",
+    "subheading": "string",
+    "ctaText": "string",
+    "ctaLink": "string",
+    "trustSignal": "string (e.g., ⭐ Trusted by 15,000+ teams • 4.8/5 rating)"
+  }
+}
+
+Example of a 'problem_solution' section in the data:
+{
+  "type": "problem_solution",
+  "data": {
+    "problemHeading": "string (question or pain point)",
+    "problemText": "string (describe the problem)",
+    "solutionHeading": "string (e.g., Product Name changes that.)",
+    "solutionText": "string (describe how it solves the problem)"
   }
 }
 
@@ -82,6 +105,17 @@ Example of a 'features' section in the data:
 Example of a 'call_to_action' section in the data:
 {
   "type": "call_to_action",
+  "data": {
+    "heading": "string",
+    "subheading": "string",
+    "ctaText": "string",
+    "ctaLink": "string"
+  }
+}
+
+Example of a 'landing_cta' section in the data (for landing pages with centered, boxed style):
+{
+  "type": "landing_cta",
   "data": {
     "heading": "string",
     "subheading": "string",
@@ -180,9 +214,92 @@ Example of a 'contact_form' section in the data:
   }
 }
 
+Example of a 'testimonials' section in the data:
+{
+  "type": "testimonials",
+  "data": {
+    "title": "string",
+    "testimonials": [
+      {
+        "quote": "string (testimonial text)",
+        "author": "string (person's name)",
+        "role": "string (job title and company)"
+      }
+    ]
+  }
+}
+
+Example of a 'stats' section in the data:
+{
+  "type": "stats",
+  "data": {
+    "stats": [
+      {
+        "value": "string (e.g., 15,000+, 2M+, 40%)",
+        "label": "string (e.g., Active Teams, Tasks Completed)"
+      }
+    ]
+  }
+}
+
+Example of a 'pricing' section in the data:
+{
+  "type": "pricing",
+  "data": {
+    "title": "string",
+    "plans": [
+      {
+        "name": "string (plan name)",
+        "price": "string (ONLY the price amount, e.g., $12, $24, Custom - NO period like /month)",
+        "period": "string (e.g., /user/month, /month, empty for custom pricing)",
+        "features": ["Feature 1", "Feature 2", "Feature 3"],
+        "ctaText": "string (e.g., Start Trial, Contact Sales)",
+        "ctaLink": "string",
+        "featured": "boolean (optional, marks most popular plan)"
+      }
+    ]
+  }
+}
+
+Example of a 'faq' section in the data:
+{
+  "type": "faq",
+  "data": {
+    "title": "string",
+    "items": [
+      {
+        "question": "string (FAQ question)",
+        "answer": "string (detailed answer)"
+      }
+    ]
+  }
+}
+
+Example of a 'footer' section in the data:
+{
+  "type": "footer",
+  "data": {
+    "contactText": "string (e.g., Contact: hello@company.com)",
+    "links": [
+      {
+        "label": "string (e.g., Privacy Policy)",
+        "url": "string"
+      }
+    ],
+    "socialLinks": [
+      {
+        "platform": "string (e.g., Twitter, LinkedIn)",
+        "url": "string"
+      }
+    ]
+  }
+}
+
 BEST PRACTICES I FOLLOW:
 - For portfolio sites: I include project_grid with 3-6 projects, skills_matrix with 3-4 categories, experience_timeline with 2-4 positions
 - For business sites: I include hero with strong CTA, features highlighting 3-6 key benefits, team_members with 3-5 people
+- For landing pages: I use landing_hero (not hero) with trustSignal, problem_solution to engage visitors, features, testimonials with 2-3 quotes, landing_cta (not call_to_action) for conversion sections, stats with 3-4 metrics, pricing with 2-4 plans, faq with 4-6 common questions, landing_cta again before footer
+- I always end pages with footer section when appropriate
 - I always end with a call_to_action or contact_form section
 - I use emojis for feature icons that match the content (e.g., 🚀 for speed, 💡 for innovation, 🎨 for design)
 - I use relative paths for internal links (e.g., "about.html" not "/about.html")

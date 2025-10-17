@@ -2,164 +2,78 @@ import type { SiteData, SiteFiles, SiteSchema, SiteSection } from '../../types';
 import { API_BASE_URL, DEFAULT_TEMPLATE, DEFAULT_ICONS, DEFAULT_PLACEHOLDER_IMAGE, DEFAULT_CTA_TEXT } from '../../constants';
 import systemPromptText from './system-prompt.txt?raw';
 
-// Mono template imports
-import monospaceBase from '../templates/monospace/base.html?raw';
-import monospaceStyles from '../templates/monospace/styles.css?raw';
-import monospaceScript from '../templates/monospace/script.js?raw';
-import monospaceHero from '../templates/monospace/hero.html?raw';
-import monospaceFeatures from '../templates/monospace/features.html?raw';
-import monospaceFeaturesItem from '../templates/monospace/features-item.html?raw';
-import monospaceTextBlock from '../templates/monospace/text-block.html?raw';
-import monospaceCallToAction from '../templates/monospace/call-to-action.html?raw';
-import monospaceTeamMembers from '../templates/monospace/team-members.html?raw';
-import monospaceTeamMemberItem from '../templates/monospace/team-member-item.html?raw';
-import monospaceProjectGrid from '../templates/monospace/project-grid.html?raw';
-import monospaceProjectItem from '../templates/monospace/project-item.html?raw';
-import monospaceSkillsMatrix from '../templates/monospace/skills-matrix.html?raw';
-import monospaceSkillCategory from '../templates/monospace/skill-category.html?raw';
-import monospaceExperienceTimeline from '../templates/monospace/experience-timeline.html?raw';
-import monospaceExperienceItem from '../templates/monospace/experience-item.html?raw';
-import monospaceContactForm from '../templates/monospace/contact-form.html?raw';
+// Shared HTML templates
+import baseTemplate from '../templates/base.html?raw';
+import scriptTemplate from '../templates/script.js?raw';
+import heroTemplate from '../templates/hero.html?raw';
+import featuresTemplate from '../templates/features.html?raw';
+import featuresItemTemplate from '../templates/features-item.html?raw';
+import textBlockTemplate from '../templates/text-block.html?raw';
+import callToActionTemplate from '../templates/call-to-action.html?raw';
+import teamMembersTemplate from '../templates/team-members.html?raw';
+import teamMemberItemTemplate from '../templates/team-member-item.html?raw';
+import projectGridTemplate from '../templates/project-grid.html?raw';
+import projectItemTemplate from '../templates/project-item.html?raw';
+import skillsMatrixTemplate from '../templates/skills-matrix.html?raw';
+import skillCategoryTemplate from '../templates/skill-category.html?raw';
+import experienceTimelineTemplate from '../templates/experience-timeline.html?raw';
+import experienceItemTemplate from '../templates/experience-item.html?raw';
+import contactFormTemplate from '../templates/contact-form.html?raw';
+import testimonialsTemplate from '../templates/testimonials.html?raw';
+import pricingTemplate from '../templates/pricing.html?raw';
+import landingHeroTemplate from '../templates/landing-hero.html?raw';
+import landingCtaTemplate from '../templates/landing-cta.html?raw';
+import problemSolutionTemplate from '../templates/problem-solution.html?raw';
+import statsTemplate from '../templates/stats.html?raw';
+import faqTemplate from '../templates/faq.html?raw';
+import footerTemplate from '../templates/footer.html?raw';
 
-// Modern template imports
-import neubrutalismBase from '../templates/neubrutalism/base.html?raw';
-import neubrutalismStyles from '../templates/neubrutalism/styles.css?raw';
-import neubrutalismScript from '../templates/neubrutalism/script.js?raw';
-import neubrutalismHero from '../templates/neubrutalism/hero.html?raw';
-import neubrutalismFeatures from '../templates/neubrutalism/features.html?raw';
-import neubrutalismFeaturesItem from '../templates/neubrutalism/features-item.html?raw';
-import neubrutalismTextBlock from '../templates/neubrutalism/text-block.html?raw';
-import neubrutalismCallToAction from '../templates/neubrutalism/call-to-action.html?raw';
-import neubrutalismTeamMembers from '../templates/neubrutalism/team-members.html?raw';
-import neubrutalismTeamMemberItem from '../templates/neubrutalism/team-member-item.html?raw';
-import neubrutalismProjectGrid from '../templates/neubrutalism/project-grid.html?raw';
-import neubrutalismProjectItem from '../templates/neubrutalism/project-item.html?raw';
-import neubrutalismSkillsMatrix from '../templates/neubrutalism/skills-matrix.html?raw';
-import neubrutalismSkillCategory from '../templates/neubrutalism/skill-category.html?raw';
-import neubrutalismExperienceTimeline from '../templates/neubrutalism/experience-timeline.html?raw';
-import neubrutalismExperienceItem from '../templates/neubrutalism/experience-item.html?raw';
-import neubrutalismContactForm from '../templates/neubrutalism/contact-form.html?raw';
+// Template-specific CSS
+import monospaceStyles from '../templates/monospace.css?raw';
+import neubrutalismStyles from '../templates/neubrutalism.css?raw';
+import swissStyles from '../templates/swiss.css?raw';
+import terminalStyles from '../templates/terminal.css?raw';
 
-// Swiss template imports
-import swissBase from '../templates/swiss/base.html?raw';
-import swissStyles from '../templates/swiss/styles.css?raw';
-import swissScript from '../templates/swiss/script.js?raw';
-import swissHero from '../templates/swiss/hero.html?raw';
-import swissFeatures from '../templates/swiss/features.html?raw';
-import swissFeaturesItem from '../templates/swiss/features-item.html?raw';
-import swissTextBlock from '../templates/swiss/text-block.html?raw';
-import swissCallToAction from '../templates/swiss/call-to-action.html?raw';
-import swissTeamMembers from '../templates/swiss/team-members.html?raw';
-import swissTeamMemberItem from '../templates/swiss/team-member-item.html?raw';
-import swissProjectGrid from '../templates/swiss/project-grid.html?raw';
-import swissProjectItem from '../templates/swiss/project-item.html?raw';
-import swissSkillsMatrix from '../templates/swiss/skills-matrix.html?raw';
-import swissSkillCategory from '../templates/swiss/skill-category.html?raw';
-import swissExperienceTimeline from '../templates/swiss/experience-timeline.html?raw';
-import swissExperienceItem from '../templates/swiss/experience-item.html?raw';
-import swissContactForm from '../templates/swiss/contact-form.html?raw';
+// Template registry - shared HTML/JS, template-specific CSS
+const sharedTemplates: { [fileName: string]: string } = {
+  'base.html': baseTemplate,
+  'script.js': scriptTemplate,
+  'hero.html': heroTemplate,
+  'features.html': featuresTemplate,
+  'features-item.html': featuresItemTemplate,
+  'text-block.html': textBlockTemplate,
+  'call-to-action.html': callToActionTemplate,
+  'team-members.html': teamMembersTemplate,
+  'team-member-item.html': teamMemberItemTemplate,
+  'project-grid.html': projectGridTemplate,
+  'project-item.html': projectItemTemplate,
+  'skills-matrix.html': skillsMatrixTemplate,
+  'skill-category.html': skillCategoryTemplate,
+  'experience-timeline.html': experienceTimelineTemplate,
+  'experience-item.html': experienceItemTemplate,
+  'contact-form.html': contactFormTemplate,
+  'testimonials.html': testimonialsTemplate,
+  'pricing.html': pricingTemplate,
+  'landing-hero.html': landingHeroTemplate,
+  'landing-cta.html': landingCtaTemplate,
+  'problem-solution.html': problemSolutionTemplate,
+  'stats.html': statsTemplate,
+  'faq.html': faqTemplate,
+  'footer.html': footerTemplate,
+};
 
-// Terminal template imports
-import terminalBase from '../templates/terminal/base.html?raw';
-import terminalStyles from '../templates/terminal/styles.css?raw';
-import terminalScript from '../templates/terminal/script.js?raw';
-import terminalHero from '../templates/terminal/hero.html?raw';
-import terminalFeatures from '../templates/terminal/features.html?raw';
-import terminalFeaturesItem from '../templates/terminal/features-item.html?raw';
-import terminalTextBlock from '../templates/terminal/text-block.html?raw';
-import terminalCallToAction from '../templates/terminal/call-to-action.html?raw';
-import terminalTeamMembers from '../templates/terminal/team-members.html?raw';
-import terminalTeamMemberItem from '../templates/terminal/team-member-item.html?raw';
-import terminalProjectGrid from '../templates/terminal/project-grid.html?raw';
-import terminalProjectItem from '../templates/terminal/project-item.html?raw';
-import terminalSkillsMatrix from '../templates/terminal/skills-matrix.html?raw';
-import terminalSkillCategory from '../templates/terminal/skill-category.html?raw';
-import terminalExperienceTimeline from '../templates/terminal/experience-timeline.html?raw';
-import terminalExperienceItem from '../templates/terminal/experience-item.html?raw';
-import terminalContactForm from '../templates/terminal/contact-form.html?raw';
-
-// Template registry
-const templates: { [templateName: string]: { [fileName: string]: string } } = {
-  monospace: {
-    'base.html': monospaceBase,
-    'styles.css': monospaceStyles,
-    'script.js': monospaceScript,
-    'hero.html': monospaceHero,
-    'features.html': monospaceFeatures,
-    'features-item.html': monospaceFeaturesItem,
-    'text-block.html': monospaceTextBlock,
-    'call-to-action.html': monospaceCallToAction,
-    'team-members.html': monospaceTeamMembers,
-    'team-member-item.html': monospaceTeamMemberItem,
-    'project-grid.html': monospaceProjectGrid,
-    'project-item.html': monospaceProjectItem,
-    'skills-matrix.html': monospaceSkillsMatrix,
-    'skill-category.html': monospaceSkillCategory,
-    'experience-timeline.html': monospaceExperienceTimeline,
-    'experience-item.html': monospaceExperienceItem,
-    'contact-form.html': monospaceContactForm,
-  },
-  neubrutalism: {
-    'base.html': neubrutalismBase,
-    'styles.css': neubrutalismStyles,
-    'script.js': neubrutalismScript,
-    'hero.html': neubrutalismHero,
-    'features.html': neubrutalismFeatures,
-    'features-item.html': neubrutalismFeaturesItem,
-    'text-block.html': neubrutalismTextBlock,
-    'call-to-action.html': neubrutalismCallToAction,
-    'team-members.html': neubrutalismTeamMembers,
-    'team-member-item.html': neubrutalismTeamMemberItem,
-    'project-grid.html': neubrutalismProjectGrid,
-    'project-item.html': neubrutalismProjectItem,
-    'skills-matrix.html': neubrutalismSkillsMatrix,
-    'skill-category.html': neubrutalismSkillCategory,
-    'experience-timeline.html': neubrutalismExperienceTimeline,
-    'experience-item.html': neubrutalismExperienceItem,
-    'contact-form.html': neubrutalismContactForm,
-  },
-  swiss: {
-    'base.html': swissBase,
-    'styles.css': swissStyles,
-    'script.js': swissScript,
-    'hero.html': swissHero,
-    'features.html': swissFeatures,
-    'features-item.html': swissFeaturesItem,
-    'text-block.html': swissTextBlock,
-    'call-to-action.html': swissCallToAction,
-    'team-members.html': swissTeamMembers,
-    'team-member-item.html': swissTeamMemberItem,
-    'project-grid.html': swissProjectGrid,
-    'project-item.html': swissProjectItem,
-    'skills-matrix.html': swissSkillsMatrix,
-    'skill-category.html': swissSkillCategory,
-    'experience-timeline.html': swissExperienceTimeline,
-    'experience-item.html': swissExperienceItem,
-    'contact-form.html': swissContactForm,
-  },
-  terminal: {
-    'base.html': terminalBase,
-    'styles.css': terminalStyles,
-    'script.js': terminalScript,
-    'hero.html': terminalHero,
-    'features.html': terminalFeatures,
-    'features-item.html': terminalFeaturesItem,
-    'text-block.html': terminalTextBlock,
-    'call-to-action.html': terminalCallToAction,
-    'team-members.html': terminalTeamMembers,
-    'team-member-item.html': terminalTeamMemberItem,
-    'project-grid.html': terminalProjectGrid,
-    'project-item.html': terminalProjectItem,
-    'skills-matrix.html': terminalSkillsMatrix,
-    'skill-category.html': terminalSkillCategory,
-    'experience-timeline.html': terminalExperienceTimeline,
-    'experience-item.html': terminalExperienceItem,
-    'contact-form.html': terminalContactForm,
-  },
+const styleTemplates: { [templateName: string]: string } = {
+  monospace: monospaceStyles,
+  neubrutalism: neubrutalismStyles,
+  swiss: swissStyles,
+  terminal: terminalStyles,
 };
 
 function getTemplate(templateName: string, fileName: string): string {
-  return templates[templateName]?.[fileName] || '';
+  if (fileName === 'styles.css') {
+    return styleTemplates[templateName] || '';
+  }
+  return sharedTemplates[fileName] || '';
 }
 
 async function ensureUniqueSlug(slug: string): Promise<string> {
@@ -285,6 +199,16 @@ function generateSection(section: SiteSection, template: string = DEFAULT_TEMPLA
       return replaceTemplateVars(heroTemplate, mapCtaData(data));
     }
     
+    case 'landing_hero': {
+      const landingHeroTemplate = getTemplate(template, 'landing-hero.html');
+      return replaceTemplateVars(landingHeroTemplate, { ...mapCtaData(data), trustSignal: data.trustSignal || '' });
+    }
+    
+    case 'problem_solution': {
+      const problemSolutionTemplate = getTemplate(template, 'problem-solution.html');
+      return replaceTemplateVars(problemSolutionTemplate, data);
+    }
+    
     case 'features': {
       const featuresTemplate = getTemplate(template, 'features.html');
       const featuresItemTemplate = getTemplate(template, 'features-item.html');
@@ -310,6 +234,11 @@ function generateSection(section: SiteSection, template: string = DEFAULT_TEMPLA
     case 'call_to_action': {
       const callToActionTemplate = getTemplate(template, 'call-to-action.html');
       return replaceTemplateVars(callToActionTemplate, mapCtaData(data));
+    }
+    
+    case 'landing_cta': {
+      const landingCtaTemplate = getTemplate(template, 'landing-cta.html');
+      return replaceTemplateVars(landingCtaTemplate, mapCtaData(data));
     }
     
     case 'team_members': {
@@ -381,6 +310,52 @@ function generateSection(section: SiteSection, template: string = DEFAULT_TEMPLA
         `<a href="${link.url}" target="_blank" rel="noopener noreferrer">${link.platform}</a>`
       ).join('');
       return replaceTemplateVars(contactFormTemplate, { ...data, socialLinks: socialLinksHtml });
+    }
+    
+    case 'testimonials': {
+      const testimonials = data.testimonials as Record<string, unknown>[] || [];
+      const testimonialsHtml = testimonials.map(t => 
+        `<blockquote><p>${t.quote}</p><footer>— ${t.author}, ${t.role}</footer></blockquote>`
+      ).join('');
+      return `<section class="testimonials"><h2>${data.title}</h2><div class="testimonial-grid">${testimonialsHtml}</div></section>`;
+    }
+    
+    case 'stats': {
+      const stats = data.stats as Record<string, unknown>[] || [];
+      const statsHtml = stats.map(s => 
+        `<div class="stat"><h3>${s.value}</h3><p>${s.label}</p></div>`
+      ).join('');
+      return `<section class="stats-section"><div class="stats">${statsHtml}</div></section>`;
+    }
+    
+    case 'pricing': {
+      const plans = data.plans as Record<string, unknown>[] || [];
+      const plansHtml = plans.map(plan => {
+        const features = (plan.features as string[]) || [];
+        const featuresHtml = features.map(f => `<li>${f}</li>`).join('');
+        const featured = plan.featured ? ' featured' : '';
+        const badge = plan.featured ? '<div class="badge">Most Popular</div>' : '';
+        const period = plan.period ? `<span>${plan.period}</span>` : '';
+        const secondary = plan.featured ? '' : ' secondary';
+        return `<div class="pricing-card${featured}">${badge}<h3>${plan.name}</h3><p class="price">${plan.price}${period}</p><ul>${featuresHtml}</ul><a href="${plan.ctaLink}" class="cta-button${secondary}">${plan.ctaText}</a></div>`;
+      }).join('');
+      return `<section class="pricing"><h2>${data.title}</h2><div class="pricing-grid">${plansHtml}</div></section>`;
+    }
+    
+    case 'faq': {
+      const items = data.items as Record<string, unknown>[] || [];
+      const itemsHtml = items.map(item => 
+        `<div class="faq-item"><h3>${item.question}</h3><p>${item.answer}</p></div>`
+      ).join('');
+      return `<section class="faq"><h2>${data.title}</h2>${itemsHtml}</section>`;
+    }
+    
+    case 'footer': {
+      const links = data.links as Record<string, unknown>[] || [];
+      const linksHtml = links.map(link => `<a href="${link.url}">${link.label}</a>`).join('');
+      const socialLinks = data.socialLinks as Record<string, unknown>[] || [];
+      const socialLinksHtml = socialLinks.map(link => `<a href="${link.url}" target="_blank" rel="noopener noreferrer">${link.platform}</a>`).join('');
+      return `<section class="footer-section"><div class="footer-content"><p>${data.contactText}</p><div class="footer-links">${linksHtml}</div><div class="social-links">${socialLinksHtml}</div></div></section>`;
     }
     
     default:

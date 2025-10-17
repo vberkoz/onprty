@@ -24,3 +24,10 @@ Build a portfolio site for Alex Rodriguez, a full-stack developer. Show 4-5 rece
 Design a portfolio for Jamie Lee, a graphic designer and illustrator. Feature a grid of creative projects including branding work, illustrations, and print design. List design software skills, creative abilities, and soft skills. Show freelance and agency experience timeline. End with contact information and social links to Dribbble, Instagram, and Behance.
 
 Portfolio website for a web developer with projects, skills, experience, and contact form.
+
+
+
+
+Create a landing page for "CloudSync" - a cloud storage and file synchronization service. We offer secure, fast file syncing across all devices with 99.9% uptime. Our target customers are small businesses and remote teams who need reliable file sharing. Include pricing tiers (Starter at $9/month, Business at $19/month, Enterprise custom pricing), customer testimonials from tech companies, key stats showing 50,000+ active users and 10M+ files synced daily, and FAQ about security and pricing. Make it conversion-focused with clear CTAs to start a free trial.
+
+Create a website for "TechVentures" - a venture capital firm investing in early-stage startups. We need an About page explaining our investment philosophy and track record (invested in 100+ companies, $500M total funding, 15 successful exits), a Portfolio page showcasing our investments, and a Contact page. Include testimonials from founders we've funded, stats about our success rate, and FAQ about our investment process and criteria. Professional tone targeting startup founders.

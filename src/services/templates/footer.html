@@ -1,0 +1,15 @@
+<section class="footer-section">
+  <div class="footer-content">
+    <p>{{contactText}}</p>
+    <div class="footer-links">
+      {{#each links}}
+      <a href="{{url}}">{{label}}</a>
+      {{/each}}
+    </div>
+    <div class="social-links">
+      {{#each socialLinks}}
+      <a href="{{url}}" target="_blank" rel="noopener noreferrer">{{platform}}</a>
+      {{/each}}
+    </div>
+  </div>
+</section>
