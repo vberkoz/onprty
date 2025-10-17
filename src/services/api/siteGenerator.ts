@@ -13,6 +13,13 @@ import monospaceTextBlock from '../templates/monospace/text-block.html?raw';
 import monospaceCallToAction from '../templates/monospace/call-to-action.html?raw';
 import monospaceTeamMembers from '../templates/monospace/team-members.html?raw';
 import monospaceTeamMemberItem from '../templates/monospace/team-member-item.html?raw';
+import monospaceProjectGrid from '../templates/monospace/project-grid.html?raw';
+import monospaceProjectItem from '../templates/monospace/project-item.html?raw';
+import monospaceSkillsMatrix from '../templates/monospace/skills-matrix.html?raw';
+import monospaceSkillCategory from '../templates/monospace/skill-category.html?raw';
+import monospaceExperienceTimeline from '../templates/monospace/experience-timeline.html?raw';
+import monospaceExperienceItem from '../templates/monospace/experience-item.html?raw';
+import monospaceContactForm from '../templates/monospace/contact-form.html?raw';
 
 // Modern template imports
 import neubrutalismBase from '../templates/neubrutalism/base.html?raw';
@@ -25,6 +32,13 @@ import neubrutalismTextBlock from '../templates/neubrutalism/text-block.html?raw
 import neubrutalismCallToAction from '../templates/neubrutalism/call-to-action.html?raw';
 import neubrutalismTeamMembers from '../templates/neubrutalism/team-members.html?raw';
 import neubrutalismTeamMemberItem from '../templates/neubrutalism/team-member-item.html?raw';
+import neubrutalismProjectGrid from '../templates/neubrutalism/project-grid.html?raw';
+import neubrutalismProjectItem from '../templates/neubrutalism/project-item.html?raw';
+import neubrutalismSkillsMatrix from '../templates/neubrutalism/skills-matrix.html?raw';
+import neubrutalismSkillCategory from '../templates/neubrutalism/skill-category.html?raw';
+import neubrutalismExperienceTimeline from '../templates/neubrutalism/experience-timeline.html?raw';
+import neubrutalismExperienceItem from '../templates/neubrutalism/experience-item.html?raw';
+import neubrutalismContactForm from '../templates/neubrutalism/contact-form.html?raw';
 
 // Swiss template imports
 import swissBase from '../templates/swiss/base.html?raw';
@@ -37,6 +51,13 @@ import swissTextBlock from '../templates/swiss/text-block.html?raw';
 import swissCallToAction from '../templates/swiss/call-to-action.html?raw';
 import swissTeamMembers from '../templates/swiss/team-members.html?raw';
 import swissTeamMemberItem from '../templates/swiss/team-member-item.html?raw';
+import swissProjectGrid from '../templates/swiss/project-grid.html?raw';
+import swissProjectItem from '../templates/swiss/project-item.html?raw';
+import swissSkillsMatrix from '../templates/swiss/skills-matrix.html?raw';
+import swissSkillCategory from '../templates/swiss/skill-category.html?raw';
+import swissExperienceTimeline from '../templates/swiss/experience-timeline.html?raw';
+import swissExperienceItem from '../templates/swiss/experience-item.html?raw';
+import swissContactForm from '../templates/swiss/contact-form.html?raw';
 
 // Terminal template imports
 import terminalBase from '../templates/terminal/base.html?raw';
@@ -49,6 +70,13 @@ import terminalTextBlock from '../templates/terminal/text-block.html?raw';
 import terminalCallToAction from '../templates/terminal/call-to-action.html?raw';
 import terminalTeamMembers from '../templates/terminal/team-members.html?raw';
 import terminalTeamMemberItem from '../templates/terminal/team-member-item.html?raw';
+import terminalProjectGrid from '../templates/terminal/project-grid.html?raw';
+import terminalProjectItem from '../templates/terminal/project-item.html?raw';
+import terminalSkillsMatrix from '../templates/terminal/skills-matrix.html?raw';
+import terminalSkillCategory from '../templates/terminal/skill-category.html?raw';
+import terminalExperienceTimeline from '../templates/terminal/experience-timeline.html?raw';
+import terminalExperienceItem from '../templates/terminal/experience-item.html?raw';
+import terminalContactForm from '../templates/terminal/contact-form.html?raw';
 
 // Template registry
 const templates: { [templateName: string]: { [fileName: string]: string } } = {
@@ -63,6 +91,13 @@ const templates: { [templateName: string]: { [fileName: string]: string } } = {
     'call-to-action.html': monospaceCallToAction,
     'team-members.html': monospaceTeamMembers,
     'team-member-item.html': monospaceTeamMemberItem,
+    'project-grid.html': monospaceProjectGrid,
+    'project-item.html': monospaceProjectItem,
+    'skills-matrix.html': monospaceSkillsMatrix,
+    'skill-category.html': monospaceSkillCategory,
+    'experience-timeline.html': monospaceExperienceTimeline,
+    'experience-item.html': monospaceExperienceItem,
+    'contact-form.html': monospaceContactForm,
   },
   neubrutalism: {
     'base.html': neubrutalismBase,
@@ -75,6 +110,13 @@ const templates: { [templateName: string]: { [fileName: string]: string } } = {
     'call-to-action.html': neubrutalismCallToAction,
     'team-members.html': neubrutalismTeamMembers,
     'team-member-item.html': neubrutalismTeamMemberItem,
+    'project-grid.html': neubrutalismProjectGrid,
+    'project-item.html': neubrutalismProjectItem,
+    'skills-matrix.html': neubrutalismSkillsMatrix,
+    'skill-category.html': neubrutalismSkillCategory,
+    'experience-timeline.html': neubrutalismExperienceTimeline,
+    'experience-item.html': neubrutalismExperienceItem,
+    'contact-form.html': neubrutalismContactForm,
   },
   swiss: {
     'base.html': swissBase,
@@ -87,6 +129,13 @@ const templates: { [templateName: string]: { [fileName: string]: string } } = {
     'call-to-action.html': swissCallToAction,
     'team-members.html': swissTeamMembers,
     'team-member-item.html': swissTeamMemberItem,
+    'project-grid.html': swissProjectGrid,
+    'project-item.html': swissProjectItem,
+    'skills-matrix.html': swissSkillsMatrix,
+    'skill-category.html': swissSkillCategory,
+    'experience-timeline.html': swissExperienceTimeline,
+    'experience-item.html': swissExperienceItem,
+    'contact-form.html': swissContactForm,
   },
   terminal: {
     'base.html': terminalBase,
@@ -99,6 +148,13 @@ const templates: { [templateName: string]: { [fileName: string]: string } } = {
     'call-to-action.html': terminalCallToAction,
     'team-members.html': terminalTeamMembers,
     'team-member-item.html': terminalTeamMemberItem,
+    'project-grid.html': terminalProjectGrid,
+    'project-item.html': terminalProjectItem,
+    'skills-matrix.html': terminalSkillsMatrix,
+    'skill-category.html': terminalSkillCategory,
+    'experience-timeline.html': terminalExperienceTimeline,
+    'experience-item.html': terminalExperienceItem,
+    'contact-form.html': terminalContactForm,
   },
 };
 
@@ -269,6 +325,62 @@ function generateSection(section: SiteSection, template: string = DEFAULT_TEMPLA
         })
       ).join('');
       return replaceTemplateVars(teamMembersTemplate, { ...data, members: membersHtml });
+    }
+    
+    case 'project_grid': {
+      const projectGridTemplate = getTemplate(template, 'project-grid.html');
+      const projectItemTemplate = getTemplate(template, 'project-item.html');
+      const projects = data.projects as Record<string, unknown>[] || [];
+      const projectsHtml = projects.map(project => 
+        replaceTemplateVars(projectItemTemplate, {
+          title: project.title,
+          category: project.category,
+          description: project.description,
+          image: project.image || DEFAULT_PLACEHOLDER_IMAGE,
+          link: project.link || '#'
+        })
+      ).join('');
+      return replaceTemplateVars(projectGridTemplate, { ...data, projects: projectsHtml });
+    }
+    
+    case 'skills_matrix': {
+      const skillsMatrixTemplate = getTemplate(template, 'skills-matrix.html');
+      const skillCategoryTemplate = getTemplate(template, 'skill-category.html');
+      const categories = data.categories as Record<string, unknown>[] || [];
+      const categoriesHtml = categories.map(category => {
+        const skills = (category.skills as string[]) || [];
+        const skillsHtml = skills.map(skill => `<li>${skill}</li>`).join('');
+        return replaceTemplateVars(skillCategoryTemplate, {
+          categoryName: category.categoryName,
+          skills: skillsHtml
+        });
+      }).join('');
+      return replaceTemplateVars(skillsMatrixTemplate, { ...data, categories: categoriesHtml });
+    }
+    
+    case 'experience_timeline': {
+      const experienceTimelineTemplate = getTemplate(template, 'experience-timeline.html');
+      const experienceItemTemplate = getTemplate(template, 'experience-item.html');
+      const experiences = data.experiences as Record<string, unknown>[] || [];
+      const experiencesHtml = experiences.map(exp => 
+        replaceTemplateVars(experienceItemTemplate, {
+          role: exp.role,
+          company: exp.company,
+          startDate: exp.startDate,
+          endDate: exp.endDate,
+          description: exp.description
+        })
+      ).join('');
+      return replaceTemplateVars(experienceTimelineTemplate, { ...data, experiences: experiencesHtml });
+    }
+    
+    case 'contact_form': {
+      const contactFormTemplate = getTemplate(template, 'contact-form.html');
+      const socialLinks = data.socialLinks as Record<string, unknown>[] || [];
+      const socialLinksHtml = socialLinks.map(link => 
+        `<a href="${link.url}" target="_blank" rel="noopener noreferrer">${link.platform}</a>`
+      ).join('');
+      return replaceTemplateVars(contactFormTemplate, { ...data, socialLinks: socialLinksHtml });
     }
     
     default:

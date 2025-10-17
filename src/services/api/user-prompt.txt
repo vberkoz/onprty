@@ -15,3 +15,12 @@ About page with:
 Contact page with:
 - Hero 'Get In Touch'
 - Text block with email mailto:info@techstart.com and phone 555-0123
+
+
+Create a portfolio website for Sarah Chen, a UX/UI designer specializing in mobile apps and web design. Include a showcase of her best projects (e-commerce app, fitness tracker, banking dashboard), her design skills and tools, her work experience at tech companies, and a contact page with her email and social media links.
+
+Build a portfolio site for Alex Rodriguez, a full-stack developer. Show 4-5 recent projects with categories like Web Development, Mobile Apps, and API Design. Include technical skills organized by Frontend, Backend, and DevOps. Add work history from the past 5 years and a contact form with LinkedIn and GitHub links.
+
+Design a portfolio for Jamie Lee, a graphic designer and illustrator. Feature a grid of creative projects including branding work, illustrations, and print design. List design software skills, creative abilities, and soft skills. Show freelance and agency experience timeline. End with contact information and social links to Dribbble, Instagram, and Behance.
+
+Portfolio website for a web developer with projects, skills, experience, and contact form.

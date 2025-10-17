@@ -26,32 +26,16 @@ const HeroSection: React.FC<HeroSectionProps> = ({
   
   return (
     <div className="accordion-item">
-      <button className="accordion-header" onClick={onToggle}>
-        <span>{isHero ? '🦸 Hero Section' : '📣 Call to Action'}</span>
-        <div style={{ display: 'flex', gap: '0.5rem', alignItems: 'center' }}>
-          <button
-            onClick={(e) => { e.stopPropagation(); onMove('up'); }}
-            disabled={sectionIndex === 0}
-            style={{ padding: '0.25rem 0.5rem', fontSize: '0.75rem', cursor: 'pointer', backgroundColor: '#6c757d', color: 'white', border: 'none', borderRadius: '4px', fontFamily: 'IBM Plex Mono, monospace' }}
-          >
-            ▲
-          </button>
-          <button
-            onClick={(e) => { e.stopPropagation(); onMove('down'); }}
-            disabled={sectionIndex === totalSections - 1}
-            style={{ padding: '0.25rem 0.5rem', fontSize: '0.75rem', cursor: 'pointer', backgroundColor: '#6c757d', color: 'white', border: 'none', borderRadius: '4px', fontFamily: 'IBM Plex Mono, monospace' }}
-          >
-            ▼
-          </button>
-          <button
-            onClick={(e) => { e.stopPropagation(); onRemove(); }}
-            style={{ padding: '0.25rem 0.5rem', fontSize: '0.75rem', cursor: 'pointer', backgroundColor: '#dc3545', color: 'white', border: 'none', borderRadius: '4px', fontFamily: 'IBM Plex Mono, monospace' }}
-          >
-            Remove
-          </button>
-          <span className="accordion-arrow">{isExpanded ? '▼' : '▶'}</span>
+      <div className="item-header">
+        <button onClick={onToggle} className="item-toggle">
+          {isExpanded ? '▼' : '▶'} {isHero ? '🦸 Hero Section' : '📣 Call to Action'}
+        </button>
+        <div className="item-controls">
+          {sectionIndex > 0 && <button onClick={(e) => { e.stopPropagation(); onMove('up'); }}>↑</button>}
+          {sectionIndex < totalSections - 1 && <button onClick={(e) => { e.stopPropagation(); onMove('down'); }}>↓</button>}
+          <button onClick={(e) => { e.stopPropagation(); onRemove(); }} className="remove-btn">✕</button>
         </div>
-      </button>
+      </div>
       {isExpanded && (
         <div className="accordion-content">
           <label>

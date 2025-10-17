@@ -145,7 +145,7 @@ export const useSiteEditor = (
     const updatedPages = [...editedData.pages];
     const section = updatedPages[pageIndex].sections[sectionIndex];
     const members = (section.data.members || []) as Record<string, unknown>[];
-    members.push({ name: 'New Member', role: 'Role', bio: 'Bio', image: 'https://via.placeholder.com/150' });
+    members.push({ name: 'New Member', role: 'Role', bio: 'Bio', image: 'https://images.pexels.com/photos/220453/pexels-photo-220453.jpeg?w=150&h=150' });
     updatedPages[pageIndex].sections[sectionIndex] = {
       ...section,
       data: { ...section.data, members }

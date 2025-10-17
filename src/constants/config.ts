@@ -14,5 +14,5 @@ export const STORAGE_KEYS = {
 // Default values
 export const DEFAULT_TEMPLATE = 'monospace';
 export const DEFAULT_ICONS = ['⚡', '🎨', '📱', '🚀', '💡', '🔧', '📊', '🎯', '🌟', '💎'];
-export const DEFAULT_PLACEHOLDER_IMAGE = 'https://via.placeholder.com/150';
+export const DEFAULT_PLACEHOLDER_IMAGE = 'https://images.pexels.com/photos/220453/pexels-photo-220453.jpeg?w=150&h=150';
 export const DEFAULT_CTA_TEXT = 'Learn More';

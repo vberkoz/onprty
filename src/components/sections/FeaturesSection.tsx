@@ -40,32 +40,16 @@ const FeaturesSection: React.FC<FeaturesSectionProps> = ({
 
   return (
     <div className="accordion-item">
-      <button className="accordion-header" onClick={onToggle}>
-        <span>✨ Features Section</span>
-        <div style={{ display: 'flex', gap: '0.5rem', alignItems: 'center' }}>
-          <button
-            onClick={(e) => { e.stopPropagation(); onMove('up'); }}
-            disabled={sectionIndex === 0}
-            style={{ padding: '0.25rem 0.5rem', fontSize: '0.75rem', cursor: 'pointer', backgroundColor: '#6c757d', color: 'white', border: 'none', borderRadius: '4px', fontFamily: 'IBM Plex Mono, monospace' }}
-          >
-            ▲
-          </button>
-          <button
-            onClick={(e) => { e.stopPropagation(); onMove('down'); }}
-            disabled={sectionIndex === totalSections - 1}
-            style={{ padding: '0.25rem 0.5rem', fontSize: '0.75rem', cursor: 'pointer', backgroundColor: '#6c757d', color: 'white', border: 'none', borderRadius: '4px', fontFamily: 'IBM Plex Mono, monospace' }}
-          >
-            ▼
-          </button>
-          <button
-            onClick={(e) => { e.stopPropagation(); onRemove(); }}
-            style={{ padding: '0.25rem 0.5rem', fontSize: '0.75rem', cursor: 'pointer', backgroundColor: '#dc3545', color: 'white', border: 'none', borderRadius: '4px', fontFamily: 'IBM Plex Mono, monospace' }}
-          >
-            Remove
-          </button>
-          <span className="accordion-arrow">{isExpanded ? '▼' : '▶'}</span>
+      <div className="item-header">
+        <button onClick={onToggle} className="item-toggle">
+          {isExpanded ? '▼' : '▶'} ✨ Features Section
+        </button>
+        <div className="item-controls">
+          {sectionIndex > 0 && <button onClick={(e) => { e.stopPropagation(); onMove('up'); }}>↑</button>}
+          {sectionIndex < totalSections - 1 && <button onClick={(e) => { e.stopPropagation(); onMove('down'); }}>↓</button>}
+          <button onClick={(e) => { e.stopPropagation(); onRemove(); }} className="remove-btn">✕</button>
         </div>
-      </button>
+      </div>
       {isExpanded && (
         <div className="accordion-content">
           {Boolean(section.data.heading) && (
@@ -82,35 +66,19 @@ const FeaturesSection: React.FC<FeaturesSectionProps> = ({
             const itemKey = `${sectionKey}-item-${idx}`;
             const isItemExpanded = expandedItems[itemKey] ?? false;
             return (
-              <div key={idx} className="accordion-item">
-                <button className="accordion-header" onClick={() => onToggleItem(itemKey)}>
-                  <span>Feature {idx + 1}</span>
-                  <div style={{ display: 'flex', gap: '0.5rem', alignItems: 'center' }}>
-                    <button
-                      onClick={(e) => { e.stopPropagation(); onMoveItem(idx, 'up'); }}
-                      disabled={idx === 0}
-                      style={{ padding: '0.25rem 0.5rem', fontSize: '0.75rem', cursor: 'pointer', backgroundColor: '#6c757d', color: 'white', border: 'none', borderRadius: '4px', fontFamily: 'IBM Plex Mono, monospace' }}
-                    >
-                      ▲
-                    </button>
-                    <button
-                      onClick={(e) => { e.stopPropagation(); onMoveItem(idx, 'down'); }}
-                      disabled={idx === items.length - 1}
-                      style={{ padding: '0.25rem 0.5rem', fontSize: '0.75rem', cursor: 'pointer', backgroundColor: '#6c757d', color: 'white', border: 'none', borderRadius: '4px', fontFamily: 'IBM Plex Mono, monospace' }}
-                    >
-                      ▼
-                    </button>
-                    <button
-                      onClick={(e) => { e.stopPropagation(); onRemoveItem(idx); }}
-                      style={{ padding: '0.25rem 0.5rem', fontSize: '0.75rem', cursor: 'pointer', backgroundColor: '#dc3545', color: 'white', border: 'none', borderRadius: '4px', fontFamily: 'IBM Plex Mono, monospace' }}
-                    >
-                      Remove
-                    </button>
-                    <span className="accordion-arrow">{isItemExpanded ? '▼' : '▶'}</span>
+              <div key={idx} className="nested-item">
+                <div className="item-header">
+                  <button onClick={() => onToggleItem(itemKey)} className="item-toggle">
+                    {isItemExpanded ? '▼' : '▶'} Feature {idx + 1}
+                  </button>
+                  <div className="item-controls">
+                    {idx > 0 && <button onClick={() => onMoveItem(idx, 'up')}>↑</button>}
+                    {idx < items.length - 1 && <button onClick={() => onMoveItem(idx, 'down')}>↓</button>}
+                    <button onClick={() => onRemoveItem(idx)} className="remove-btn">✕</button>
                   </div>
-                </button>
+                </div>
                 {isItemExpanded && (
-                  <div className="accordion-content">
+                  <div className="item-content">
                     <label>
                       Icon:
                       <div style={{ display: 'flex', gap: '0.5rem' }}>
@@ -165,7 +133,7 @@ const FeaturesSection: React.FC<FeaturesSectionProps> = ({
               </div>
             );
           })}
-          <button onClick={onAddItem} style={{ padding: '0.5rem', fontSize: '0.75rem', cursor: 'pointer', backgroundColor: '#28a745', color: 'white', border: 'none', borderRadius: '4px', fontFamily: 'IBM Plex Mono, monospace', marginTop: '0.5rem', width: '100%' }}>+ Add Feature</button>
+          <button onClick={onAddItem} className="add-item-btn">+ Add Feature</button>
         </div>
       )}
     </div>

@@ -4,6 +4,10 @@ import HeroSection from '../sections/HeroSection';
 import FeaturesSection from '../sections/FeaturesSection';
 import TextBlockSection from '../sections/TextBlockSection';
 import TeamMembersSection from '../sections/TeamMembersSection';
+import ProjectGridSection from '../sections/ProjectGridSection';
+import SkillsMatrixSection from '../sections/SkillsMatrixSection';
+import ExperienceTimelineSection from '../sections/ExperienceTimelineSection';
+import ContactFormSection from '../sections/ContactFormSection';
 
 interface SiteEditorProps {
   selectedSite: StoredSite | null;
@@ -84,6 +88,36 @@ const SiteEditor: React.FC<SiteEditorProps> = ({ selectedSite, onSave, onPreview
     debouncedSave(updated);
   };
 
+  const updateProjectItem = (pageIndex: number, sectionIndex: number, itemIndex: number, field: string, value: string) => {
+    const updatedPages = [...editedData.pages];
+    const section = updatedPages[pageIndex].sections[sectionIndex];
+    const projects = section.data.projects as Record<string, unknown>[];
+    projects[itemIndex] = { ...projects[itemIndex], [field]: value };
+    updatedPages[pageIndex].sections[sectionIndex] = {
+      ...section,
+      data: { ...section.data, projects }
+    };
+    const updated = { ...editedData, pages: updatedPages };
+    setEditedData(updated);
+    onPreview(updated);
+    debouncedSave(updated);
+  };
+
+  const updateExperienceItem = (pageIndex: number, sectionIndex: number, itemIndex: number, field: string, value: string) => {
+    const updatedPages = [...editedData.pages];
+    const section = updatedPages[pageIndex].sections[sectionIndex];
+    const experiences = section.data.experiences as Record<string, unknown>[];
+    experiences[itemIndex] = { ...experiences[itemIndex], [field]: value };
+    updatedPages[pageIndex].sections[sectionIndex] = {
+      ...section,
+      data: { ...section.data, experiences }
+    };
+    const updated = { ...editedData, pages: updatedPages };
+    setEditedData(updated);
+    onPreview(updated);
+    debouncedSave(updated);
+  };
+
   const updateTeamMember = (pageIndex: number, sectionIndex: number, memberIndex: number, field: string, value: string) => {
     const updatedPages = [...editedData.pages];
     const section = updatedPages[pageIndex].sections[sectionIndex];
@@ -114,6 +148,36 @@ const SiteEditor: React.FC<SiteEditorProps> = ({ selectedSite, onSave, onPreview
     debouncedSave(updated);
   };
 
+  const addProjectItem = (pageIndex: number, sectionIndex: number) => {
+    const updatedPages = [...editedData.pages];
+    const section = updatedPages[pageIndex].sections[sectionIndex];
+    const projects = (section.data.projects || []) as Record<string, unknown>[];
+    projects.push({ title: 'New Project', category: 'Category', description: 'Description', image: 'https://images.pexels.com/photos/1181467/pexels-photo-1181467.jpeg?w=400&h=300', link: '#' });
+    updatedPages[pageIndex].sections[sectionIndex] = {
+      ...section,
+      data: { ...section.data, projects }
+    };
+    const updated = { ...editedData, pages: updatedPages };
+    setEditedData(updated);
+    onPreview(updated);
+    debouncedSave(updated);
+  };
+
+  const addExperienceItem = (pageIndex: number, sectionIndex: number) => {
+    const updatedPages = [...editedData.pages];
+    const section = updatedPages[pageIndex].sections[sectionIndex];
+    const experiences = (section.data.experiences || []) as Record<string, unknown>[];
+    experiences.push({ role: 'Role', company: 'Company', startDate: '2020', endDate: 'Present', description: 'Description' });
+    updatedPages[pageIndex].sections[sectionIndex] = {
+      ...section,
+      data: { ...section.data, experiences }
+    };
+    const updated = { ...editedData, pages: updatedPages };
+    setEditedData(updated);
+    onPreview(updated);
+    debouncedSave(updated);
+  };
+
   const removeFeatureItem = (pageIndex: number, sectionIndex: number, itemIndex: number) => {
     const updatedPages = [...editedData.pages];
     const section = updatedPages[pageIndex].sections[sectionIndex];
@@ -122,6 +186,36 @@ const SiteEditor: React.FC<SiteEditorProps> = ({ selectedSite, onSave, onPreview
     updatedPages[pageIndex].sections[sectionIndex] = {
       ...section,
       data: { ...section.data, items }
+    };
+    const updated = { ...editedData, pages: updatedPages };
+    setEditedData(updated);
+    onPreview(updated);
+    debouncedSave(updated);
+  };
+
+  const removeProjectItem = (pageIndex: number, sectionIndex: number, itemIndex: number) => {
+    const updatedPages = [...editedData.pages];
+    const section = updatedPages[pageIndex].sections[sectionIndex];
+    const projects = section.data.projects as Record<string, unknown>[];
+    projects.splice(itemIndex, 1);
+    updatedPages[pageIndex].sections[sectionIndex] = {
+      ...section,
+      data: { ...section.data, projects }
+    };
+    const updated = { ...editedData, pages: updatedPages };
+    setEditedData(updated);
+    onPreview(updated);
+    debouncedSave(updated);
+  };
+
+  const removeExperienceItem = (pageIndex: number, sectionIndex: number, itemIndex: number) => {
+    const updatedPages = [...editedData.pages];
+    const section = updatedPages[pageIndex].sections[sectionIndex];
+    const experiences = section.data.experiences as Record<string, unknown>[];
+    experiences.splice(itemIndex, 1);
+    updatedPages[pageIndex].sections[sectionIndex] = {
+      ...section,
+      data: { ...section.data, experiences }
     };
     const updated = { ...editedData, pages: updatedPages };
     setEditedData(updated);
@@ -146,11 +240,45 @@ const SiteEditor: React.FC<SiteEditorProps> = ({ selectedSite, onSave, onPreview
     debouncedSave(updated);
   };
 
+  const moveProjectItem = (pageIndex: number, sectionIndex: number, itemIndex: number, direction: 'up' | 'down') => {
+    const updatedPages = [...editedData.pages];
+    const section = updatedPages[pageIndex].sections[sectionIndex];
+    const projects = section.data.projects as Record<string, unknown>[];
+    const newIndex = direction === 'up' ? itemIndex - 1 : itemIndex + 1;
+    if (newIndex < 0 || newIndex >= projects.length) return;
+    [projects[itemIndex], projects[newIndex]] = [projects[newIndex], projects[itemIndex]];
+    updatedPages[pageIndex].sections[sectionIndex] = {
+      ...section,
+      data: { ...section.data, projects }
+    };
+    const updated = { ...editedData, pages: updatedPages };
+    setEditedData(updated);
+    onPreview(updated);
+    debouncedSave(updated);
+  };
+
+  const moveExperienceItem = (pageIndex: number, sectionIndex: number, itemIndex: number, direction: 'up' | 'down') => {
+    const updatedPages = [...editedData.pages];
+    const section = updatedPages[pageIndex].sections[sectionIndex];
+    const experiences = section.data.experiences as Record<string, unknown>[];
+    const newIndex = direction === 'up' ? itemIndex - 1 : itemIndex + 1;
+    if (newIndex < 0 || newIndex >= experiences.length) return;
+    [experiences[itemIndex], experiences[newIndex]] = [experiences[newIndex], experiences[itemIndex]];
+    updatedPages[pageIndex].sections[sectionIndex] = {
+      ...section,
+      data: { ...section.data, experiences }
+    };
+    const updated = { ...editedData, pages: updatedPages };
+    setEditedData(updated);
+    onPreview(updated);
+    debouncedSave(updated);
+  };
+
   const addTeamMember = (pageIndex: number, sectionIndex: number) => {
     const updatedPages = [...editedData.pages];
     const section = updatedPages[pageIndex].sections[sectionIndex];
     const members = (section.data.members || []) as Record<string, unknown>[];
-    members.push({ name: 'New Member', role: 'Role', bio: 'Bio', image: 'https://via.placeholder.com/150' });
+    members.push({ name: 'New Member', role: 'Role', bio: 'Bio', image: 'https://images.pexels.com/photos/220453/pexels-photo-220453.jpeg?w=150&h=150' });
     updatedPages[pageIndex].sections[sectionIndex] = {
       ...section,
       data: { ...section.data, members }
@@ -193,11 +321,16 @@ const SiteEditor: React.FC<SiteEditorProps> = ({ selectedSite, onSave, onPreview
     debouncedSave(updated);
   };
 
-  const addSection = (pageIndex: number, type: 'hero' | 'features' | 'text_block' | 'call_to_action' | 'team_members') => {
+  const addSection = (pageIndex: number, type: 'hero' | 'features' | 'text_block' | 'call_to_action' | 'team_members' | 'project_grid' | 'skills_matrix' | 'experience_timeline' | 'contact_form') => {
     const updatedPages = [...editedData.pages];
     const newSection: SiteSection = {
       type,
-      data: type === 'features' ? { items: [] } : type === 'team_members' ? { members: [] } : {}
+      data: type === 'features' ? { items: [] } : 
+            type === 'team_members' ? { members: [] } : 
+            type === 'project_grid' ? { projects: [] } : 
+            type === 'skills_matrix' ? { categories: [] } : 
+            type === 'experience_timeline' ? { experiences: [] } : 
+            type === 'contact_form' ? { socialLinks: [] } : {}
     };
     updatedPages[pageIndex].sections.push(newSection);
     const updated = { ...editedData, pages: updatedPages };
@@ -335,6 +468,42 @@ const SiteEditor: React.FC<SiteEditorProps> = ({ selectedSite, onSave, onPreview
           />
         );
 
+      case 'project_grid':
+        return (
+          <ProjectGridSection
+            key={sectionIndex}
+            {...commonProps}
+            expandedItems={expandedSections}
+            onToggleItem={toggleSection}
+            onUpdateItem={(itemIndex, field, value) => updateProjectItem(pageIndex, sectionIndex, itemIndex, field, value)}
+            onMoveItem={(itemIndex, direction) => moveProjectItem(pageIndex, sectionIndex, itemIndex, direction)}
+            onRemoveItem={(itemIndex) => removeProjectItem(pageIndex, sectionIndex, itemIndex)}
+            onAddItem={() => addProjectItem(pageIndex, sectionIndex)}
+            sectionKey={sectionKey}
+          />
+        );
+
+      case 'skills_matrix':
+        return <SkillsMatrixSection key={sectionIndex} {...commonProps} />;
+
+      case 'experience_timeline':
+        return (
+          <ExperienceTimelineSection
+            key={sectionIndex}
+            {...commonProps}
+            expandedItems={expandedSections}
+            onToggleItem={toggleSection}
+            onUpdateItem={(itemIndex, field, value) => updateExperienceItem(pageIndex, sectionIndex, itemIndex, field, value)}
+            onMoveItem={(itemIndex, direction) => moveExperienceItem(pageIndex, sectionIndex, itemIndex, direction)}
+            onRemoveItem={(itemIndex) => removeExperienceItem(pageIndex, sectionIndex, itemIndex)}
+            onAddItem={() => addExperienceItem(pageIndex, sectionIndex)}
+            sectionKey={sectionKey}
+          />
+        );
+
+      case 'contact_form':
+        return <ContactFormSection key={sectionIndex} {...commonProps} />;
+
       default:
         return null;
     }
@@ -427,6 +596,10 @@ const SiteEditor: React.FC<SiteEditorProps> = ({ selectedSite, onSave, onPreview
                   <button onClick={() => addSection(pageIndex, 'text_block')} style={{ padding: '0.5rem', fontSize: '0.75rem', cursor: 'pointer', backgroundColor: '#007bff', color: 'white', border: 'none', borderRadius: '4px', fontFamily: 'IBM Plex Mono, monospace' }}>+ Text Block</button>
                   <button onClick={() => addSection(pageIndex, 'call_to_action')} style={{ padding: '0.5rem', fontSize: '0.75rem', cursor: 'pointer', backgroundColor: '#007bff', color: 'white', border: 'none', borderRadius: '4px', fontFamily: 'IBM Plex Mono, monospace' }}>+ CTA</button>
                   <button onClick={() => addSection(pageIndex, 'team_members')} style={{ padding: '0.5rem', fontSize: '0.75rem', cursor: 'pointer', backgroundColor: '#007bff', color: 'white', border: 'none', borderRadius: '4px', fontFamily: 'IBM Plex Mono, monospace' }}>+ Team</button>
+                  <button onClick={() => addSection(pageIndex, 'project_grid')} style={{ padding: '0.5rem', fontSize: '0.75rem', cursor: 'pointer', backgroundColor: '#28a745', color: 'white', border: 'none', borderRadius: '4px', fontFamily: 'IBM Plex Mono, monospace' }}>+ Projects</button>
+                  <button onClick={() => addSection(pageIndex, 'skills_matrix')} style={{ padding: '0.5rem', fontSize: '0.75rem', cursor: 'pointer', backgroundColor: '#28a745', color: 'white', border: 'none', borderRadius: '4px', fontFamily: 'IBM Plex Mono, monospace' }}>+ Skills</button>
+                  <button onClick={() => addSection(pageIndex, 'experience_timeline')} style={{ padding: '0.5rem', fontSize: '0.75rem', cursor: 'pointer', backgroundColor: '#28a745', color: 'white', border: 'none', borderRadius: '4px', fontFamily: 'IBM Plex Mono, monospace' }}>+ Experience</button>
+                  <button onClick={() => addSection(pageIndex, 'contact_form')} style={{ padding: '0.5rem', fontSize: '0.75rem', cursor: 'pointer', backgroundColor: '#28a745', color: 'white', border: 'none', borderRadius: '4px', fontFamily: 'IBM Plex Mono, monospace' }}>+ Contact</button>
                 </div>
               </div>
             </div>
