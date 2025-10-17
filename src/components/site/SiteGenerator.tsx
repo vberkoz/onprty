@@ -1,6 +1,7 @@
 import React from 'react';
 import Dropdown from '../ui/Dropdown';
 import Button from '../ui/Button';
+import { getAvailableTemplates, formatTemplateName, parseTemplateName } from '../../services/templates';
 
 interface SiteGeneratorProps {
   prompt: string;
@@ -19,6 +20,9 @@ const SiteGenerator: React.FC<SiteGeneratorProps> = ({
   onTemplateChange,
   onGenerate
 }) => {
+  const templates = getAvailableTemplates();
+  const templateOptions = templates.map(formatTemplateName);
+  
   const examples = [
     'A website for a startup that delivers custom weekly meal kits based on rare, forgotten recipes from ancient cultures.',
     'A landing page for a new AI-powered legal document drafting service for small businesses.',
@@ -54,9 +58,9 @@ const SiteGenerator: React.FC<SiteGeneratorProps> = ({
         <label>
           Template:
           <Dropdown
-            value={selectedTemplate === 'monospace' ? 'Monospace' : selectedTemplate === 'neubrutalism' ? 'Neubrutalism' : selectedTemplate === 'swiss' ? 'Swiss' : 'Terminal'}
-            options={['Monospace', 'Neubrutalism', 'Swiss', 'Terminal']}
-            onChange={(value) => onTemplateChange(value === 'Monospace' ? 'monospace' : value === 'Neubrutalism' ? 'neubrutalism' : value === 'Swiss' ? 'swiss' : 'terminal')}
+            value={formatTemplateName(selectedTemplate)}
+            options={templateOptions}
+            onChange={(value) => onTemplateChange(parseTemplateName(value))}
             disabled={isGenerating}
           />
         </label>

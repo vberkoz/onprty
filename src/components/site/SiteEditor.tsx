@@ -22,7 +22,7 @@ const SiteEditor: React.FC<SiteEditorProps> = ({ selectedSite, onSave, onPreview
     if (selectedSite?.schema?.generatedData) {
       setEditedData(selectedSite.schema.generatedData as SiteData);
     }
-  }, [selectedSite?.id, selectedSite?.schema?.generatedData]);
+  }, [selectedSite?.id]);
 
   const debouncedSave = useCallback((data: SiteData) => {
     if (debounceTimer) {

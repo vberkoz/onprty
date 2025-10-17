@@ -4,6 +4,7 @@ import type { StoredSite } from '../../types';
 import Dropdown from '../ui/Dropdown';
 import Button from '../ui/Button';
 import Spinner from '../ui/Spinner';
+import { getAvailableTemplates, formatTemplateName, parseTemplateName } from '../../services/templates';
 
 interface SiteManagerProps {
   sites: StoredSite[];
@@ -38,6 +39,9 @@ const SiteManager: React.FC<SiteManagerProps> = ({
   onUpdateSite,
   onTemplateChange
 }) => {
+  const templates = getAvailableTemplates();
+  const templateOptions = templates.map(formatTemplateName);
+  
   const handleSiteSelect = (siteName: string) => {
     const site = sites.find(s => s.name === siteName);
     if (site) {
@@ -66,9 +70,9 @@ const SiteManager: React.FC<SiteManagerProps> = ({
               <label>
                 Template:
                 <Dropdown
-                  value={selectedSite.schema?.template === 'neubrutalism' ? 'Neubrutalism' : selectedSite.schema?.template === 'swiss' ? 'Swiss' : selectedSite.schema?.template === 'terminal' ? 'Terminal' : 'Monospace'}
-                  options={['Monospace', 'Neubrutalism', 'Swiss', 'Terminal']}
-                  onChange={(value) => onTemplateChange(value === 'Monospace' ? 'monospace' : value === 'Neubrutalism' ? 'neubrutalism' : value === 'Swiss' ? 'swiss' : 'terminal')}
+                  value={formatTemplateName(selectedSite.schema?.template || 'monospace')}
+                  options={templateOptions}
+                  onChange={(value) => onTemplateChange(parseTemplateName(value))}
                 />
               </label>
               <label>
