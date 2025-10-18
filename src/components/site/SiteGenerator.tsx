@@ -24,9 +24,9 @@ const SiteGenerator: React.FC<SiteGeneratorProps> = ({
   const templateOptions = templates.map(formatTemplateName);
   
   const examples = [
-    'A website for a startup that delivers custom weekly meal kits based on rare, forgotten recipes from ancient cultures.',
-    'A landing page for a new AI-powered legal document drafting service for small businesses.',
-    'A site showcasing a co-working space dedicated entirely to remote deep-sea researchers and marine biologists.'
+    'SaaS landing page for "TaskFlow" project management tool. Include pricing ($15 Pro, $8 Starter per user/month), testimonials, 50K+ users stat, and FAQ.',
+    'Portfolio for Alex Chen, UX/UI designer. Show 5 projects, skills (Figma, Adobe XD), 3 years experience, and contact form.',
+    'Landing page for "FitTrack" fitness app. Problem/solution for workout tracking, AI coaching features, pricing tiers, and testimonials.'
   ];
 
   return (
