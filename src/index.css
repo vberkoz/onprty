@@ -1,5 +1,5 @@
 :root {
-  font-family: 'IBM Plex Mono', monospace;
+  font-family: 'Space Grotesk', sans-serif;
   line-height: 1.5;
   font-weight: 400;
   color: #333;
@@ -85,7 +85,7 @@ body {
   padding: 0.5rem 1rem;
   cursor: pointer;
   font-size: 0.9rem;
-  font-family: 'IBM Plex Mono', monospace;
+  font-family: 'Space Grotesk', sans-serif;
   color: #666;
   transition: all 0.2s;
 }
@@ -128,7 +128,7 @@ body {
   text-align: left;
   cursor: pointer;
   font-size: 0.9rem;
-  font-family: 'IBM Plex Mono', monospace;
+  font-family: 'Space Grotesk', sans-serif;
   color: #dc3545;
   transition: background-color 0.2s;
 }
@@ -221,7 +221,7 @@ body {
   border: 1px solid #ddd;
   border-radius: 4px;
   background-color: #f8f9fa;
-  font-family: 'IBM Plex Mono', monospace;
+  font-family: 'Space Grotesk', sans-serif;
   font-size: 0.8rem;
   text-align: left;
   cursor: pointer;
@@ -263,7 +263,7 @@ body {
   border: none;
   border-radius: 4px;
   cursor: pointer;
-  font-family: 'IBM Plex Mono', monospace;
+  font-family: 'Space Grotesk', sans-serif;
   font-weight: 500;
   transition: all 0.2s;
   text-align: center;
@@ -456,7 +456,7 @@ body {
   border-radius: 4px;
   cursor: pointer;
   font-size: 0.8rem;
-  font-family: 'IBM Plex Mono', monospace;
+  font-family: 'Space Grotesk', sans-serif;
   transition: all 0.2s;
 }
 
@@ -516,7 +516,7 @@ body {
   border: 1px solid #ddd;
   border-radius: 4px;
   background-color: white;
-  font-family: 'IBM Plex Mono', monospace;
+  font-family: 'Space Grotesk', sans-serif;
   font-size: 0.9rem;
   cursor: pointer;
   width: 100%;
@@ -562,7 +562,7 @@ body {
   padding: 0.5rem 0.75rem;
   border: none;
   background: none;
-  font-family: 'IBM Plex Mono', monospace;
+  font-family: 'Space Grotesk', sans-serif;
   font-size: 0.9rem;
   text-align: left;
   cursor: pointer;
@@ -612,7 +612,7 @@ body {
 }
 
 .code-content {
-  font-family: 'IBM Plex Mono', monospace;
+  font-family: 'Space Grotesk', sans-serif;
   font-size: 0.9rem;
   line-height: 1.5;
   background-color: white;
@@ -643,7 +643,7 @@ body {
   padding: 1rem;
   border: none;
   background: none;
-  font-family: 'IBM Plex Mono', monospace;
+  font-family: 'Space Grotesk', sans-serif;
   font-size: 0.9rem;
   font-weight: 500;
   color: #666;
@@ -700,7 +700,7 @@ body {
   padding: 0.5rem;
   border: 1px solid #ddd;
   border-radius: 4px;
-  font-family: 'IBM Plex Mono', monospace;
+  font-family: 'Space Grotesk', sans-serif;
   font-size: 0.85rem;
   background-color: white;
   transition: border-color 0.2s;
@@ -733,7 +733,7 @@ body {
   justify-content: space-between;
   align-items: center;
   cursor: pointer;
-  font-family: 'IBM Plex Mono', monospace;
+  font-family: 'Space Grotesk', sans-serif;
   font-size: 0.85rem;
   font-weight: 600;
   color: #333;
@@ -795,7 +795,7 @@ body {
   border-radius: 4px;
   cursor: pointer;
   font-weight: 500;
-  font-family: 'IBM Plex Mono', monospace;
+  font-family: 'Space Grotesk', sans-serif;
   font-size: 1rem;
   transition: background-color 0.2s;
   width: 100%;
@@ -853,7 +853,7 @@ body {
   border: 1px solid #ddd;
   background-color: white;
   border-radius: 4px;
-  font-family: 'IBM Plex Mono', monospace;
+  font-family: 'Space Grotesk', sans-serif;
   font-size: 0.9rem;
   cursor: pointer;
   transition: all 0.2s;
@@ -959,7 +959,7 @@ body {
 .section-toggle {
   background: none;
   border: none;
-  font-family: 'IBM Plex Mono', monospace;
+  font-family: 'Space Grotesk', sans-serif;
   font-size: 0.85rem;
   font-weight: 600;
   color: #333;
@@ -981,7 +981,7 @@ body {
   border-radius: 3px;
   cursor: pointer;
   font-size: 0.75rem;
-  font-family: 'IBM Plex Mono', monospace;
+  font-family: 'Space Grotesk', sans-serif;
   transition: all 0.2s;
   color: #666;
 }
@@ -1022,7 +1022,7 @@ body {
   padding: 0.5rem;
   border: 1px solid #ddd;
   border-radius: 4px;
-  font-family: 'IBM Plex Mono', monospace;
+  font-family: 'Space Grotesk', sans-serif;
   font-size: 0.85rem;
 }
 
@@ -1046,7 +1046,7 @@ body {
 .item-toggle {
   background: none;
   border: none;
-  font-family: 'IBM Plex Mono', monospace;
+  font-family: 'Space Grotesk', sans-serif;
   font-size: 0.8rem;
   font-weight: 500;
   color: #555;
@@ -1068,7 +1068,7 @@ body {
   border-radius: 3px;
   cursor: pointer;
   font-size: 0.7rem;
-  font-family: 'IBM Plex Mono', monospace;
+  font-family: 'Space Grotesk', sans-serif;
   transition: all 0.2s;
   color: #666;
 }
@@ -1109,7 +1109,7 @@ body {
   padding: 0.4rem;
   border: 1px solid #ddd;
   border-radius: 3px;
-  font-family: 'IBM Plex Mono', monospace;
+  font-family: 'Space Grotesk', sans-serif;
   font-size: 0.8rem;
 }
 
@@ -1120,7 +1120,7 @@ body {
   background-color: #f8f9fa;
   border-radius: 4px;
   cursor: pointer;
-  font-family: 'IBM Plex Mono', monospace;
+  font-family: 'Space Grotesk', sans-serif;
   font-size: 0.8rem;
   color: #007bff;
   transition: all 0.2s;

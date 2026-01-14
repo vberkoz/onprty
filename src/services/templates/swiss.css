@@ -1,10 +1,10 @@
-@import url('https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;600;700;800&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@300;400;500;600;700;800&display=swap');
 
 :root {
   --color-primary: #fff;
   --color-secondary: #1a1a1a;
   --color-accent: #666;
-  --font-body: 'JetBrains Mono', monospace;
+  --font-body: 'Space Grotesk', sans-serif;
   --max-width: 90rem;
   --padding-base: 3rem;
   --gap-base: 2rem;

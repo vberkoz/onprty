@@ -1,4 +1,4 @@
-@import url('https://fonts.googleapis.com/css2?family=Chivo+Mono:wght@400;700&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@300;400;500;600;700&display=swap');
 
 :root {
   /* Neubrutalist Color Palette */
@@ -8,7 +8,7 @@
   --color-light: #F0F0F0; /* Off-White for text on dark/elements */
 
   /* Font: Monospace, Bold, and Industrial */
-  --font-body: 'Chivo Mono', monospace;
+  --font-body: 'Space Grotesk', sans-serif;
   
   /* Global Sizing */
   --max-width: 68rem;

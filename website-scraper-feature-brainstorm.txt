@@ -1,0 +1,645 @@
+================================================================================
+WEBSITE SCRAPER & REGENERATION FEATURE - BRAINSTORM
+================================================================================
+Date: 2024
+Project: OnPrty - AI-Powered Website Generator
+Feature: URL-to-Schema Website Cloning & Regeneration
+================================================================================
+
+OVERVIEW
+--------
+Enable users to input a website URL, automatically scrape and parse its HTML/content,
+convert it into the OnPrty JSON schema format, and regenerate a similar website
+using the app's template system and AI capabilities.
+
+
+CORE WORKFLOW
+-------------
+1. User Input: URL submission via new UI component
+2. Scraping: Fetch and parse HTML from target URL
+3. HTML Cleansing: Strip scripts, CSS, and non-content elements
+4. Analysis: Extract structure, content, and semantic meaning from clean HTML
+5. Schema Mapping: Convert extracted data to OnPrty JSON schema
+6. AI Enhancement: Use Bedrock to refine/improve content (clean HTML only)
+7. Template Selection: Auto-select or let user choose template
+8. Generation: Create new site using existing generation pipeline
+9. Preview & Edit: Allow user to review and modify before saving
+
+
+TECHNICAL ARCHITECTURE
+-----------------------
+
+Frontend Components:
+- URLInputForm: Input field with validation for website URLs
+- ScrapingProgress: Real-time status indicator (fetching, parsing, analyzing)
+- SchemaPreview: JSON viewer showing extracted schema before generation
+- TemplateSelector: UI to choose which template to apply
+- ComparisonView: Side-by-side original vs regenerated preview
+
+Backend Services:
+- Lambda Function: /scrape endpoint (separate from /generate)
+- Scraper Service: Headless browser or HTTP client
+- HTML Cleanser: Strips scripts, CSS, and non-content elements
+- Parser Service: HTML-to-JSON conversion logic
+- AI Analyzer: Bedrock integration for content understanding
+- Schema Mapper: Converts parsed data to OnPrty schema format
+
+
+SCRAPING STRATEGY
+-----------------
+
+Option A: Server-Side Scraping (Recommended)
+- Use Puppeteer/Playwright in Lambda container
+- Handles JavaScript-rendered content
+- Can capture dynamic elements
+- Requires larger Lambda (container image)
+- Timeout considerations (max 15 min Lambda)
+
+Option B: Client-Side Proxy
+- CORS proxy service
+- Lighter Lambda footprint
+- Limited to static HTML
+- Faster but less comprehensive
+
+Option C: Hybrid Approach
+- Try simple HTTP fetch first
+- Fall back to headless browser if needed
+- Cost-optimized solution
+
+
+HTML CLEANSING PIPELINE
+-----------------------
+
+Step 1: Remove Scripts and Styles
+- Strip all <script> tags and content (inline and external)
+- Remove all <style> tags and content
+- Remove style attributes from all elements
+- Remove <link rel="stylesheet"> tags
+- Remove event handlers (onclick, onload, etc.)
+- Remove <noscript> tags
+
+Step 2: Remove Non-Content Elements
+- Strip <meta> tags (except description)
+- Remove <iframe>, <embed>, <object> tags
+- Remove tracking pixels and analytics code
+- Remove comments <!-- -->
+- Remove SVG definitions not used for content
+- Remove hidden elements (display:none, visibility:hidden)
+
+Step 3: Preserve Semantic Structure
+- Keep: <header>, <nav>, <main>, <section>, <article>, <footer>
+- Keep: <h1>-<h6>, <p>, <a>, <ul>, <ol>, <li>
+- Keep: <img> with src and alt attributes
+- Keep: <button>, <form>, <input>, <label>
+- Keep: <div> and <span> with text content
+- Keep: data-* attributes that indicate semantic meaning
+- Keep: class names as structural hints (e.g., "hero", "features")
+
+Step 4: Normalize and Simplify
+- Collapse whitespace and empty elements
+- Remove nested divs with no semantic value
+- Flatten unnecessary wrapper elements
+- Preserve hierarchy (parent-child relationships)
+- Keep only essential attributes (id, class, href, src, alt)
+
+Step 5: Extract Metadata
+- Page title from <title> tag
+- Description from <meta name="description">
+- Canonical URL if available
+- Open Graph data (og:title, og:description)
+
+Cleansed Output Format:
+- Pure semantic HTML with content only
+- Minimal attributes (structural hints preserved)
+- No executable code or styling
+- Optimized for AI token consumption
+- Typical reduction: 80-95% smaller payload
+
+
+HTML PARSING LOGIC (Post-Cleansing)
+------------------------------------
+
+Page Structure Detection:
+- Identify header/nav elements → extract navigation structure
+- Detect hero sections (large headings + CTA buttons)
+- Find feature grids (repeated card patterns)
+- Locate team sections (images + names + roles)
+- Identify CTAs (buttons, forms, prominent links)
+- Extract footer content
+
+Content Extraction:
+- Headings (h1-h6) → section titles
+- Paragraphs → descriptions and text blocks
+- Images → URLs (with alt text for context)
+- Links → CTAs and navigation
+- Lists → features, skills, or bullet points
+- Forms → contact form fields
+
+Semantic Analysis:
+- Use preserved class names as hints (no CSS needed)
+- Analyze text content for keywords (portfolio, team, pricing, etc.)
+- Detect patterns from DOM structure (repeated elements = grid)
+- Identify page type (landing, portfolio, business, blog)
+
+
+SCHEMA MAPPING RULES
+---------------------
+
+Hero Section Detection:
+- Large heading at top + subheading + CTA button
+- Map to: hero or landing_hero type
+- Extract: heading, subheading, ctaText, ctaLink
+
+Features Section Detection:
+- Grid/flex layout with 3-6 items
+- Each item has icon/image + heading + description
+- Map to: features type
+- Extract icons (convert images to emojis via AI)
+
+Team Section Detection:
+- Grid of people with photos + names + titles
+- Map to: team_members type
+- Replace images with randomuser.me URLs
+
+Project Grid Detection:
+- Portfolio items with images + titles + descriptions
+- Map to: project_grid type
+- Replace images with Pexels verified IDs
+
+Text Blocks:
+- Long-form content sections
+- Map to: text_block type
+
+Call-to-Action:
+- Prominent buttons/forms with conversion focus
+- Map to: call_to_action or landing_cta type
+
+Contact Forms:
+- Form elements with email/message fields
+- Map to: contact_form type
+- Extract field labels and social links
+
+
+AI ENHANCEMENT LAYER
+---------------------
+
+Input to Bedrock: CLEANSED HTML ONLY
+- Send only stripped, semantic HTML (no scripts/CSS)
+- Reduces token count by 80-95%
+- Faster processing and lower costs
+- Eliminates noise and irrelevant code
+- Focuses AI on content and structure
+
+Use Bedrock (Nova Micro) to:
+1. Improve scraped content quality
+   - Rewrite awkward or incomplete text
+   - Generate missing descriptions
+   - Create cohesive tone/voice
+
+2. Infer missing metadata
+   - Generate site description from content
+   - Create URL-friendly slugs
+   - Suggest author/company name
+
+3. Classify sections accurately
+   - Determine section types when ambiguous
+   - Suggest appropriate emojis for features
+   - Identify page purpose (about, portfolio, etc.)
+
+4. Fill gaps
+   - Generate placeholder content for broken sections
+   - Create navigation labels
+   - Suggest additional pages based on site type
+
+Prompt Strategy:
+"Analyze this cleansed HTML from a scraped website: [CLEAN_HTML]. 
+Extract content and structure, classify sections, improve text quality, 
+and convert to valid OnPrty JSON schema. Focus only on semantic content."
+
+Benefits of Cleansed Input:
+- 10-20x fewer tokens sent to Bedrock
+- Faster AI response times (less to process)
+- Lower costs per scrape operation
+- Better AI accuracy (no code confusion)
+- Safer (no malicious scripts reach AI)
+
+
+MULTI-PAGE HANDLING
+--------------------
+
+Crawling Strategy:
+- Start with homepage (index.html)
+- Extract internal links from navigation
+- Scrape up to N pages (limit: 5-10 to avoid abuse)
+- Respect robots.txt
+- Implement rate limiting
+
+Page Mapping:
+- Homepage → index.html (path: "/")
+- About page → about.html (path: "/about")
+- Contact → contact.html (path: "/contact")
+- Portfolio → portfolio.html (path: "/portfolio")
+
+Navigation Extraction:
+- Parse <nav> or header menu
+- Extract link text → navLabel
+- Extract href → path
+- Generate consistent fileName from path
+
+
+TEMPLATE SELECTION
+-------------------
+
+Auto-Detection:
+- Portfolio indicators: "portfolio", "projects", "work", image galleries
+- Business indicators: "services", "team", "pricing", "features"
+- Landing page indicators: single page, strong CTAs, testimonials
+
+User Override:
+- Allow manual template selection after scraping
+- Show preview of each template option
+- Explain why auto-selection was made
+
+Template Compatibility:
+- Ensure scraped schema matches template capabilities
+- Warn if sections won't render in selected template
+- Suggest alternative templates
+
+
+CHALLENGES & SOLUTIONS
+-----------------------
+
+Challenge: Dynamic/JavaScript-heavy sites
+Solution: Use Puppeteer in Lambda container, wait for content to load
+
+Challenge: Anti-scraping measures (Cloudflare, rate limits)
+Solution: Implement retry logic, user-agent rotation, respect delays
+
+Challenge: Inconsistent HTML structure
+Solution: Multiple parsing strategies, fallback to AI interpretation
+
+Challenge: Copyright/legal concerns
+Solution: Add disclaimer, only scrape public content, transform significantly
+
+Challenge: Large sites (100+ pages)
+Solution: Limit to main pages, allow user to select specific pages
+
+Challenge: Broken images/links
+Solution: Validate URLs, replace with placeholders, use AI to generate alternatives
+
+Challenge: Complex layouts (nested grids, custom components)
+Solution: Simplify to supported section types, preserve core content
+
+Challenge: Non-English content
+Solution: Preserve original language, use AI for translation if needed
+
+Challenge: Lambda timeout (15 min max)
+Solution: Async processing with status polling, SQS queue for long jobs
+
+
+SECURITY CONSIDERATIONS
+------------------------
+
+Input Validation:
+- Validate URL format and protocol (https only)
+- Block internal/private IPs (localhost, 192.168.x.x)
+- Whitelist allowed domains or implement reputation check
+- Sanitize all scraped content (XSS prevention)
+
+Rate Limiting:
+- Limit scraping requests per user (e.g., 5 per day)
+- Implement cooldown between requests
+- Track usage in DynamoDB
+
+Content Safety:
+- HTML cleansing removes ALL scripts before any processing
+- Strip <script>, <style>, event handlers in cleansing pipeline
+- Validate image URLs before including in schema
+- Check for NSFW content (optional)
+- Cleansed HTML never contains executable code
+- AI only receives sanitized, content-only HTML
+
+Legal Compliance:
+- Add terms of service for scraping feature
+- Respect robots.txt and meta tags
+- Include attribution/source URL in metadata
+- Transform content significantly (not direct copy)
+
+
+API DESIGN
+----------
+
+New Endpoint: POST /scrape
+
+Request:
+{
+  "url": "https://example.com",
+  "options": {
+    "maxPages": 5,
+    "includeImages": true,
+    "templatePreference": "auto" | "business" | "portfolio" | "landing"
+  }
+}
+
+Response (Success):
+{
+  "status": "success",
+  "schema": { /* OnPrty JSON schema */ },
+  "metadata": {
+    "pagesScraped": 3,
+    "sectionsDetected": 12,
+    "sourceUrl": "https://example.com",
+    "scrapedAt": "2024-01-15T10:30:00Z"
+  },
+  "suggestions": {
+    "recommendedTemplate": "business",
+    "confidence": 0.85
+  }
+}
+
+Response (Async Processing):
+{
+  "status": "processing",
+  "jobId": "scrape-123-456",
+  "estimatedTime": 30
+}
+
+Status Check: GET /scrape/{jobId}
+
+
+UI/UX FLOW
+----------
+
+Step 1: URL Input Screen
+- Large input field: "Enter website URL to clone"
+- Examples: "Try: https://stripe.com or https://example-portfolio.com"
+- Validation feedback in real-time
+- "Analyze Website" button
+
+Step 2: Scraping Progress
+- Animated loader with status updates:
+  * "Fetching website..."
+  * "Parsing HTML structure..."
+  * "Analyzing content with AI..."
+  * "Mapping to schema..."
+- Progress bar (0-100%)
+- Cancel button
+
+Step 3: Schema Preview
+- JSON viewer (collapsible tree)
+- Detected sections list with icons
+- Edit capability (inline JSON editor)
+- "Looks good" / "Edit more" options
+
+Step 4: Template Selection
+- Grid of template previews
+- Auto-selected template highlighted
+- "Why this template?" explanation
+- Override option
+
+Step 5: Generation
+- Use existing /generate flow
+- Pre-populate with scraped schema
+- Allow final edits before generation
+
+Step 6: Comparison View
+- Split screen: original site (iframe) vs generated site
+- Highlight differences
+- "Regenerate with changes" option
+
+
+DATABASE SCHEMA ADDITIONS
+--------------------------
+
+New Table: ScrapedSites
+- userId (partition key)
+- scrapeId (sort key)
+- sourceUrl
+- scrapedSchema (JSON)
+- createdAt
+- status (pending, completed, failed)
+- generatedSiteId (FK to sites table)
+
+Track scraping history for:
+- Usage analytics
+- Rate limiting enforcement
+- Debugging failed scrapes
+- User scraping history
+
+
+COST CONSIDERATIONS
+-------------------
+
+Lambda Costs:
+- Puppeteer container: ~1GB memory, 30-60s execution
+- HTML cleansing: negligible overhead (~100ms)
+- Estimate: $0.01-0.05 per scrape
+- Monthly limit per user to control costs
+
+Bedrock Costs (WITH HTML CLEANSING):
+- Nova Micro: ~$0.0001 per 1K tokens
+- Typical raw HTML: 50K-200K tokens (EXPENSIVE)
+- Cleansed HTML: 2K-10K tokens (80-95% reduction)
+- Schema analysis: ~2K-10K tokens per site
+- Estimate: $0.0002-0.001 per scrape (10x cheaper!)
+
+Bedrock Costs (WITHOUT cleansing - for comparison):
+- Would be: $0.005-0.020 per scrape
+- Cleansing saves ~90% on AI costs
+
+S3 Costs:
+- Minimal (storing JSON schemas)
+
+Total: ~$0.01-0.06 per scrape operation
+
+Cost Savings from HTML Cleansing:
+- Reduces Bedrock token usage by 80-95%
+- Saves $0.004-0.019 per scrape
+- At 1000 scrapes/month: saves $4-19/month
+- At 10,000 scrapes/month: saves $40-190/month
+
+
+MONETIZATION OPPORTUNITIES
+--------------------------
+
+Free Tier:
+- 3 scrapes per month
+- Max 3 pages per scrape
+- Basic templates only
+
+Pro Tier:
+- 50 scrapes per month
+- Max 10 pages per scrape
+- All templates
+- Priority processing
+
+Enterprise:
+- Unlimited scrapes
+- Custom page limits
+- API access
+- Bulk operations
+
+
+FUTURE ENHANCEMENTS
+-------------------
+
+Phase 2:
+- Scrape and preserve custom CSS styles
+- Extract color schemes and fonts
+- Clone animations and interactions
+- Support for e-commerce sites
+
+Phase 3:
+- Scheduled re-scraping (monitor site changes)
+- Diff detection (what changed since last scrape)
+- Multi-site comparison
+- Competitive analysis features
+
+Phase 4:
+- Browser extension for one-click scraping
+- Mobile app support
+- Collaborative scraping (team features)
+- AI-powered redesign suggestions
+
+
+IMPLEMENTATION PRIORITY
+------------------------
+
+MVP (Phase 1):
+1. Basic HTTP scraping (no headless browser)
+2. HTML cleansing pipeline (CRITICAL - must be first)
+3. Single page scraping only
+4. Core section detection (hero, features, CTA)
+5. Bedrock integration with cleansed HTML
+6. Manual template selection
+7. Simple UI with URL input
+
+Phase 2:
+8. Multi-page crawling
+9. Headless browser support
+10. Enhanced cleansing rules
+11. AI content enhancement
+12. Auto template selection
+13. Schema preview/editing
+
+Phase 3:
+14. Advanced section detection
+15. Image replacement logic
+16. Comparison view
+17. Scraping history
+18. Rate limiting and security
+
+
+TESTING STRATEGY
+-----------------
+
+Test Sites:
+- Simple static HTML sites
+- React/Vue SPA sites
+- WordPress sites
+- Shopify stores
+- Portfolio sites (Behance, Dribbble)
+- Landing pages (Product Hunt featured)
+- Script-heavy sites (test cleansing effectiveness)
+
+Test Cases:
+- Valid URL → successful scrape
+- Invalid URL → error handling
+- Protected site → graceful failure
+- Timeout → async processing
+- Malformed HTML → fallback parsing
+- Empty site → minimal schema generation
+- Script-heavy site → verify all scripts removed
+- Inline styles → verify all CSS stripped
+- Malicious code → verify sanitization
+
+HTML Cleansing Tests:
+- Input: 200KB HTML with scripts/CSS → Output: 10-20KB clean HTML
+- Verify no <script> tags in output
+- Verify no style attributes in output
+- Verify semantic structure preserved
+- Verify content integrity (no text lost)
+- Measure token reduction (target: 80-95%)
+- Validate Bedrock accepts cleansed HTML
+- Compare AI accuracy: raw vs cleansed input
+
+
+SUCCESS METRICS
+---------------
+
+Technical:
+- Scraping success rate > 90%
+- Average processing time < 45 seconds
+- Schema accuracy (manual review) > 80%
+- Generated site similarity score > 70%
+
+Business:
+- Feature adoption rate
+- Conversion: scrape → generated site → saved site
+- User satisfaction (survey)
+- Reduced time-to-site (vs manual creation)
+
+
+COMPETITIVE ANALYSIS
+--------------------
+
+Similar Tools:
+- Webflow: Manual import, no auto-scraping
+- Wix ADI: AI generation but no URL cloning
+- Copy.ai: Content only, no structure
+- HTTrack: Downloads sites but no regeneration
+
+OnPrty Advantage:
+- End-to-end: scrape → transform → regenerate
+- AI-enhanced content improvement
+- Template-based consistency
+- Cloud-native architecture
+
+
+RISKS & MITIGATION
+-------------------
+
+Risk: Legal issues with content scraping
+Mitigation: Clear ToS, significant transformation, attribution
+
+Risk: Poor scraping quality
+Mitigation: Multiple parsing strategies, AI fallback, user editing
+
+Risk: High costs from abuse
+Mitigation: Rate limiting, usage caps, monitoring
+
+Risk: Complex sites fail to scrape
+Mitigation: Set expectations, show success rate, allow manual input
+
+Risk: Generated sites don't match original
+Mitigation: Comparison view, iterative regeneration, user feedback loop
+
+
+DOCUMENTATION NEEDS
+--------------------
+
+User Docs:
+- "How to Clone a Website" tutorial
+- Supported site types
+- Limitations and best practices
+- Troubleshooting guide
+
+Developer Docs:
+- Scraping API reference
+- Schema mapping rules
+- Parser extension guide
+- Testing procedures
+
+
+================================================================================
+END OF BRAINSTORM
+================================================================================
+
+Next Steps:
+1. Review with team for feasibility
+2. Prioritize MVP features
+3. Create technical design doc
+4. Estimate development timeline
+5. Build proof-of-concept scraper
+6. Test with 10-20 real websites
+7. Iterate based on results
